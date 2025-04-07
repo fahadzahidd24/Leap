@@ -16,7 +16,8 @@ import { Button } from "react-native-paper";
 import LeapTextInput from "../components/LeapTextInput.jsx";
 import { publicApi } from "../api/axios.js";
 import { useDispatch } from "react-redux";
-import { setUser } from "../redux/features/userSlice.js";
+import { setProfession, setUser } from "../redux/features/userSlice.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -35,10 +36,12 @@ const SignIn = ({ navigation }) => {
     setLoading(true);
     publicApi
       .post("/login", { email, password })
-      .then((res) => {
+      .then(async(res) => {
         const user = res.data.user;
 
         dispatch(setUser({ user }));
+        await AsyncStorage.setItem("profession", user?.profession);
+        // dispatch(setProfession(user?.profession));
       })
       .catch((err) => {
         console.error(err);

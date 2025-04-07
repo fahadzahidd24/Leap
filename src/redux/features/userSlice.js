@@ -21,9 +21,13 @@ export const userSlice = createSlice({
       logout();
       return null;
     },
+    setProfession: (state,action) => {
+      const profession = action.payload.profession;
+      state.profession = profession
+    }
   },
 });
 
-export const { setUser, logoutUser } = userSlice.actions;
+export const { setUser, logoutUser, setProfession } = userSlice.actions;
 
 export default userSlice.reducer;

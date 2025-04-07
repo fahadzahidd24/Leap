@@ -13,6 +13,7 @@ import { logoutUser, setUser } from "./src/redux/features/userSlice";
 import * as Location from "expo-location";
 import { store } from "./src/redux/store";
 import useSocket from "./src/hooks/useSocket";
+import { LogBox } from 'react-native';
 import {
   resetCurrentCoordinates,
   setCurrentCoordinates,
@@ -22,7 +23,7 @@ import { resetEntries, setEntries } from "./src/redux/features/entriesSlice";
 import { debounce } from "lodash";
 import * as Linking from "expo-linking";
 import { resetChat } from "./src/redux/features/chatSlice";
-
+LogBox.ignoreAllLogs();
 // Define the function to send the agent location
 const sendAgentLocation = async (latitude, longitude, user) => {
   try {

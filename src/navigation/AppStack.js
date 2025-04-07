@@ -34,8 +34,15 @@ import MyAgents from "../screens/My Agents";
 import { resetCurrentCoordinates } from "../redux/features/locationSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
+import ChatCoach from "../screens/AskMyCoach/ChatCoach";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ChatGpt from "../screens/AskMyCoach/ChatGpt";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import Disclaimer from "../screens/AskMyCoach/Disclaimer";
+import Profession from "../screens/AskMyCoach/Profession";
 
 const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tabs = createBottomTabNavigator();
 
@@ -102,6 +109,7 @@ const DrawerNav = () => {
   const entries = useSelector((state) => state.Entries);
 
   const handleLogout = async () => {
+    await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
     dispatch(resetCurrentCoordinates());
     dispatch(resetEntries());
@@ -111,7 +119,10 @@ const DrawerNav = () => {
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
-        <CustomDrawerContent {...props} handleLogout={handleLogout} />
+        <CustomDrawerContent
+          {...props}
+          handleLogout={handleLogout}
+        />
       )}
       initialRouteName={
         entries?.SalesTargets?.averageCaseSize ? "tabs" : "Sales"
@@ -138,6 +149,13 @@ const DrawerNav = () => {
         ),
       }}
     >
+      <Drawer.Screen
+        name="Home"
+        component={Home}
+        options={{
+          drawerLabel: "Home",
+        }}
+      />
       <Drawer.Screen
         name="tabs"
         component={TabNav}
@@ -178,6 +196,7 @@ const ManagerDrawerNav = () => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
+    await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
     dispatch(resetCurrentCoordinates());
     dispatch(resetEntries());
@@ -187,7 +206,10 @@ const ManagerDrawerNav = () => {
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
-        <CustomDrawerContent {...props} handleLogout={handleLogout} />
+        <CustomDrawerContent
+          {...props}
+          handleLogout={handleLogout}
+        />
       )}
       initialRouteName="Agent Tracking"
       screenOptions={{
@@ -246,6 +268,90 @@ const ManagerDrawerNav = () => {
   );
 };
 
+const CoachDrawer = () => {
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("profession");
+    dispatch(logoutUser());
+    dispatch(resetCurrentCoordinates());
+    dispatch(resetEntries());
+    dispatch(resetChat());
+  };
+
+  const prof = AsyncStorage.getItem("profession");
+  console.log(prof);
+  const initialRouteNameV = prof ? "ChatCoach" : "Profession";
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => (
+        <CustomDrawerContent {...props} handleLogout={handleLogout} />
+      )}
+      initialRouteName={initialRouteNameV}
+      screenOptions={{
+        title: "",
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+        },
+        headerShadowVisible: false,
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.dispatch(DrawerActions.toggleDrawer());
+            }}
+          >
+            <Octicons
+              name="three-bars"
+              size={24}
+              color="white"
+              style={{ marginLeft: 30 }}
+            />
+          </TouchableOpacity>
+        ),
+      }}
+    >
+      <Drawer.Screen
+        name="Home"
+        component={Home}
+        options={{
+          drawerLabel: "Home",
+        }}
+      />
+      <Drawer.Screen
+        name="Profession"
+        component={Profession}
+        options={{
+          drawerLabel: "Profession",
+        }}
+      />
+      <Drawer.Screen
+        name="ChatCoach"
+        component={CoachStack}
+        options={{
+          drawerLabel: "Chat",
+          headerShown: false,
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
+
+const CoachStack = () => {
+  return (
+    <NativeStack.Navigator
+      initialRouteName="Prompts"
+      screenOptions={{
+        headerShown: false,
+        animation: "fade_from_bottom",
+      }}
+    >
+      <NativeStack.Screen name="Prompts" component={ChatCoach} />
+      <NativeStack.Screen name="ChatGpt" component={ChatGpt} />
+    </NativeStack.Navigator>
+  );
+};
+
 export default AppStack = () => {
   const role = useSelector((state) => state.User?.role);
   const navigation = useNavigation();
@@ -269,9 +375,14 @@ export default AppStack = () => {
             name="Agent"
             component={DrawerNav}
           />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Coach"
+            component={CoachDrawer}
+          />
         </>
       )}
-      {role === "supervisor" && (
+      {role === "manager" && (
         <>
           <Stack.Screen
             options={{ headerShown: false }}

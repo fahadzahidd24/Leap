@@ -17,24 +17,26 @@
 // }
 
 export async function getDistanceBetweenCoordinates(lat1, lon1, lat2, lon2) {
-  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${lat1},${lon1}&destinations=${lat2},${lon2}&key=`;
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${lat1},${lon1}&destinations=${lat2},${lon2}&key=AIzaSyA7MT7Dx9W58D1PGlFH6f1S2zO7lymcDqg`;
 
   try {
     const response = await fetch(url);
     const data = await response.json();
     if (data.rows[0].elements[0].status === "OK") {
-      const distanceText = data.rows[0].elements[0].distance.text; // e.g., "1200 ft"
+      console.log("yo");
+      const distanceText = data.rows[0].elements[0].distance.text;
+      // console.log(distanceText) // e.g., "1200 ft"
       let distanceInMiles;
 
       if (distanceText.includes("ft")) {
         // Extract the numeric value and convert to miles
         const distanceInFeet = parseFloat(distanceText);
         distanceInMiles = distanceInFeet / 5280; // Convert feet to miles
-      } else if (distanceText.includes("miles")) {
+      } else if (distanceText.includes("miles") || distanceText.includes("mi") ) {
         // If already in miles, just extract the number
         distanceInMiles = parseFloat(distanceText);
       }
-
+      console.log({distanceInMiles})
       return distanceInMiles; // distance in miles
     } else {
       throw new Error("Distance calculation failed");

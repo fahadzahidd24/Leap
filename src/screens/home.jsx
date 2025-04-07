@@ -15,10 +15,10 @@ import React from "react";
 import { theme } from "../constants/theme";
 import { useDispatch, useSelector } from "react-redux";
 
-const Module = ({ navigation, text, bg, fg, href }) => {
+const Module = ({ navigation, text, bg, fg, href, routeName }) => {
   return (
     <Pressable
-      onPress={() => navigation.navigate("Agent")}
+      onPress={() => navigation.navigate(routeName)}
       style={{
         backgroundColor: "orange",
         marginVertical: 25,
@@ -125,18 +125,21 @@ const Home = ({ navigation }) => {
               fg={require("../../assets/1a.png")}
               text={"Track sales activity"}
               navigation={navigation}
+              routeName={"Agent"}
             />
             <Module
               bg={require("../../assets/2.png")}
               fg={require("../../assets/2a.png")}
               text={"Ask my coach"}
               navigation={navigation}
+              routeName={"Coach"}
             />
             <Module
               bg={require("../../assets/3.png")}
               fg={require("../../assets/3a.png")}
               text={"Watch masterclass"}
               navigation={navigation}
+              routeName={"Agent"}
             />
           </View>
         </ScrollView>
