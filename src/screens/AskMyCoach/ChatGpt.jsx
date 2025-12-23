@@ -64,7 +64,7 @@ const ChatGpt = ({ navigation, route }) => {
       }
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      console.log("Error sending message: ", error);
       Alert.alert('Error', 'Network Error. Please try again.');
     }
   };

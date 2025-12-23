@@ -28,10 +28,14 @@ import {
   setYearlyAchieved,
 } from "../redux/features/entriesSlice";
 import Loader from "../components/Loader";
-import { Video, ResizeMode } from "expo-av";
-import { Button } from "react-native-paper";
-import * as Linking from "expo-linking";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+
+const videoTitles = {
+  P: "Pre-Approach - Prospects Contacted",
+  A: "Approach - Appointment Secured",
+  PR: "Presentation - Presentations Made",
+  S: "Closing - Sales Closed",
+};
 
 const Activity = ({
   text,
@@ -51,23 +55,17 @@ const Activity = ({
   const [premiumInput, setPremiumInput] = useState("0");
   const [pressedItem, setPressedItem] = useState(null);
   const InputRef = useRef(null);
-  const video = React.useRef(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const rootNavigation = useNavigation();
 
-  const videoLinks = {
-    S: "https://vimeo.com/988983248/026de08811?share=copy",
-    P: "https://vimeo.com/988983018/8475a4b767?share=copy",
-    A: "https://vimeo.com/988983632/319a908362?share=copy",
-  };
+  const data = Array.from({ length: 50 }, (_, index) => index);
 
-  const data = Array.from({ length: 50 }, (_, index) => index + 1);
-
-  const openModal = () => {
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
+  const handleVideoPress = () => {
+    // Map status to video key (PR uses same video as P)
+    const videoKey = status === "PR" ? "PR" : status;
+    rootNavigation.navigate("VideoPlayer", {
+      videoKey: videoKey,
+      title: videoTitles[videoKey] || videoTitles[status],
+    });
   };
 
   const renderItem = ({ item, index }) => {
@@ -241,7 +239,7 @@ const Activity = ({
                     width: "100%",
                   }}
                 >
-                  <Text style={{ fontWeight: "400", fontSize: 20 }}>$ </Text>
+                  <Text style={{ fontWeight: "400", fontSize: 20 }}>RM </Text>
                   <TextInput
                     value={premiumInput}
                     onChangeText={(text) => setPremiumInput(text)}
@@ -279,7 +277,7 @@ const Activity = ({
             }}
           >
             <View style={{ alignItems: "flex-end", marginRight: 5 }}>
-              <Text style={{ fontSize: 10 }}>Total Premium</Text>
+              <Text style={{ fontSize: 10 }}>Total Sales</Text>
               <Text style={{ fontSize: 10 }}>YTD</Text>
             </View>
             <View
@@ -294,7 +292,7 @@ const Activity = ({
               }}
             >
               <Text style={{ fontWeight: "400", fontSize: 20 }}>
-                $ {totalPremium}
+                RM {totalPremium}
               </Text>
             </View>
           </View>
@@ -381,28 +379,24 @@ const Activity = ({
             }}
           >
             <TouchableOpacity
-              onPress={() =>
-                Linking.canOpenURL(videoLinks[status])
-                  .then(() => Linking.openURL(videoLinks[status]))
-                  .catch((err) => console.error(err))
-              }
+              onPress={handleVideoPress}
               style={{ marginHorizontal: 2 }} // Add horizontal margin to space out the icon
             >
-              <SimpleLineIcons name="social-youtube" size={27} color="black" />
+              <SimpleLineIcons name="control-play" size={27} color="black" />
               {/* <MaterialCommunityIcons name="youtube" size={27} color="black" /> */}
             </TouchableOpacity>
 
-            <TouchableOpacity // Make EvilIcons touchable
+            {/* <TouchableOpacity // Make EvilIcons touchable
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 2 }} // Add horizontal margin to space out the icon
             >
-              {/* <EvilIcons name="calendar" size={35} color="black" /> */}
+              <EvilIcons name="calendar" size={35} color="black" />
               <MaterialCommunityIcons
                 name="calendar-month"
                 size={27}
                 color="black"
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity // Make MaterialCommunityIcons touchable
               onPress={() => navigation.navigate("Annual Progress")}
@@ -417,32 +411,6 @@ const Activity = ({
           </View>
         </View>
       </View>
-      {/* <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalView}>
-          <Video
-            ref={video}
-            style={styles.video}
-            source={{
-              uri: videoLinks[status],
-            }}
-            useNativeControls
-            resizeMode={ResizeMode.CONTAIN}
-            isLooping
-          />
-          <Button
-            onPress={closeModal}
-            style={{ zIndex: 99 }}
-            labelStyle={{ color: "white", fontSize: 16 }}
-          >
-            Close
-          </Button>
-        </View>
-      </Modal> */}
     </>
   );
 };
@@ -523,9 +491,9 @@ const DailyActivity = ({ navigation }) => {
         >
           <Image
             source={require("../../assets/logo.png")}
-            style={{ alignSelf: "center" }}
+            style={{ alignSelf: "center", width: 220, height: 220 }}
           />
-          <Text
+          {/* <Text
             style={{
               textAlign: "center",
               fontSize: 32,
@@ -535,7 +503,7 @@ const DailyActivity = ({ navigation }) => {
             }}
           >
             My Sales Coach
-          </Text>
+          </Text> */}
 
           <Text
             style={{
@@ -565,7 +533,7 @@ const DailyActivity = ({ navigation }) => {
             style={{ flex: 1, justifyContent: "flex-start", marginTop: 30 }}
           >
             <Activity
-              text={"Prospects Reached for Appointments"}
+              text={"Prospects Contacted"}
               goals={entries?.daily_goals?.p_daily || 0}
               achieved={entries?.daily_achieved?.p_daily || 0}
               status={"P"}
@@ -580,7 +548,7 @@ const DailyActivity = ({ navigation }) => {
             />
 
             <Activity
-              text={"Appointments Kept"}
+              text={"Appointment Secured"}
               goals={entries?.daily_goals?.a_daily || 0}
               achieved={entries?.daily_achieved?.a_daily || 0}
               status={"A"}
@@ -593,9 +561,23 @@ const DailyActivity = ({ navigation }) => {
               navigation={navigation}
               color={"#ffca08"}
             />
+            <Activity
+              text={"Presentations Made"}
+              goals={entries?.daily_goals?.pr_daily || 0}
+              achieved={entries?.daily_achieved?.pr_daily || 0}
+              status={"P"}
+              onPress={(value) =>
+                updateAchievements({
+                  pr_daily: value,
+                  date: new Date().toLocaleDateString("en-GB"),
+                })
+              }
+              navigation={navigation}
+              color={"#cb6be5"}
+            />
 
             <Activity
-              text={"Sales with Premium"}
+              text={"Sales Closed"}
               goals={entries?.daily_goals?.s_daily || 0}
               achieved={entries?.daily_achieved?.s_daily || 0}
               navigation={navigation}
@@ -641,15 +623,5 @@ const styles = StyleSheet.create({
   backgroundStyle: {
     backgroundColor: theme.colors.background,
     flex: 1,
-  },
-  modalView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  video: {
-    height: 300,
-    width: "90%",
   },
 });

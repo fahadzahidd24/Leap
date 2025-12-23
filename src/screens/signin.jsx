@@ -21,10 +21,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const [emailError, setEmailError] = useState(false);
+  const [utcCode, setUtcCode] = useState("");
+  const [utcCodeError, setUtcCodeError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
   const [showAlert, setShowAlert] = useState(false);
@@ -33,11 +33,23 @@ const SignIn = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const signinFunc = () => {
+    if(!utcCode.trim()) {
+      setUtcCodeError(true);
+      return;
+    }
+    if(!password.trim()) {
+      setPasswordError(true);
+      return;
+    }
     setLoading(true);
     publicApi
-      .post("/login", { email, password })
+      .post("/login", { utcCode, password })
       .then(async(res) => {
         const user = res.data.user;
+        if(user?.role !== "agent" && user?.role !== "manager"){
+          Alert.alert("Login Failed", "You are not an agent or a manager. Only agents and managers can login.");
+          return;
+        }
 
         dispatch(setUser({ user }));
         await AsyncStorage.setItem("profession", user?.profession);
@@ -68,7 +80,7 @@ const SignIn = ({ navigation }) => {
           keyboardShouldPersistTaps={"handled"}
           contentContainerStyle={{
             justifyContent: "center",
-            paddingVertical: 50,
+            paddingBottom: 100,
             paddingHorizontal: 10,
             flexGrow: 1,
             // backgroundColor: "yellow",
@@ -78,10 +90,10 @@ const SignIn = ({ navigation }) => {
         >
           <Image
             source={require("../../assets/logo.png")}
-            style={{ alignSelf: "center" }}
+            style={{ alignSelf: "center", width: 270, height: 270 }}
           />
 
-          <Text
+          {/* <Text
             style={{
               textAlign: "center",
               fontSize: 32,
@@ -91,19 +103,19 @@ const SignIn = ({ navigation }) => {
             }}
           >
             My Sales Coach
-          </Text>
+          </Text> */}
           <Text
             style={{
               textAlign: "center",
               fontSize: 24,
               fontStyle: "italic",
-              fontFamily: "",
+              // fontFamily: "",
               marginHorizontal: 5,
-              marginTop: 80,
+              marginTop: 20,
               color: theme.colors.secondary,
             }}
           >
-            “My Best Partner In Sales”
+            You Get What You Track
           </Text>
           <View
             style={{
@@ -111,13 +123,21 @@ const SignIn = ({ navigation }) => {
               justifyContent: "space-between",
             }}
           >
-            <LeapTextInput
+            {/* <LeapTextInput
               label="Email"
               value={email}
               keyboardType={"email-address"}
               autoComplete={"email"}
               onChangeText={(text) => setEmail(text)}
               isError={emailError}
+            /> */}
+            <LeapTextInput
+              label="UTC Code"
+              value={utcCode}
+              keyboardType="default"
+              // autoComplete="email"
+              onChangeText={(text) => setUtcCode(text)}
+              isError={utcCodeError}
             />
             <LeapTextInput
               label={"Password"}

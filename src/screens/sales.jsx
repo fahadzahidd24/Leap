@@ -1,7 +1,9 @@
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -18,11 +20,16 @@ import { Button } from "react-native-paper";
 import { setEntries } from "../redux/features/entriesSlice";
 import { isEmpty } from "../utils/isEmpty";
 import Loader from "../components/Loader";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Sales = ({ navigation }) => {
   const token = useSelector((state) => state.User?.token);
+  const user = useSelector((state) => state.User);
   const entries = useSelector((state) => state.Entries);
   const dispatch = useDispatch();
+
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const [selectedDays, setSelectedDays] = useState([]);
 
   const [formData, setFormData] = useState({
     salesTargets: "",
@@ -30,6 +37,7 @@ const Sales = ({ navigation }) => {
     numberOfWeeks: "",
     prospectingApproach: "",
     appointmentsKept: "",
+    presentationsHeld:"",
     salesSubmitted: "",
   });
 
@@ -39,6 +47,7 @@ const Sales = ({ navigation }) => {
     numberOfWeeksError: false,
     prospectingApproachError: false,
     appointmentsKeptError: false,
+    presentationsHeldError: false,
     salesSubmittedError: false,
   });
 
@@ -73,6 +82,7 @@ const Sales = ({ navigation }) => {
         numberOfWeeks: entries?.SalesTargets?.numberOfWeeks || "",
         prospectingApproach: entries?.SuccessFormula?.prospectingApproach || "",
         appointmentsKept: entries?.SuccessFormula?.appointmentsKept || "",
+        presentationsHeld: entries?.SuccessFormula?.presentationsHeld || "",
         salesSubmitted: entries?.SuccessFormula?.salesSubmitted || "",
       });
     }
@@ -85,6 +95,7 @@ const Sales = ({ navigation }) => {
       numberOfWeeks: formData.numberOfWeeks === "",
       prospectingApproach: formData.prospectingApproach === "",
       appointmentsKept: formData.appointmentsKept === "",
+      presentationsHeld: formData.presentationsHeld === "",
       salesSubmitted: formData.salesSubmitted === "",
     };
 
@@ -94,7 +105,16 @@ const Sales = ({ navigation }) => {
     return !hasError;
   };
 
-  const saveEntries = () => {
+  const saveEntries = async () => {
+    if (selectedDays.length === 0) {
+      Alert.alert(
+        "Please Select Your Working Days.",
+        "",
+        [{ text: "OK", onPress: () => setShowAlert(false) }],
+        { cancelable: false }
+      );
+      return;
+    }
     if (validateData()) {
       setLoading(true);
 
@@ -106,6 +126,7 @@ const Sales = ({ navigation }) => {
             numberOfWeeks: formData.numberOfWeeks,
             prospectingApproach: formData.prospectingApproach,
             appointmentsKept: formData.appointmentsKept,
+            presentationsHeld: formData.presentationsHeld,
             salesSubmitted: formData.salesSubmitted,
           })
           .then((res) => {
@@ -123,6 +144,7 @@ const Sales = ({ navigation }) => {
             numberOfWeeks: formData.numberOfWeeks,
             prospectingApproach: formData.prospectingApproach,
             appointmentsKept: formData.appointmentsKept,
+            presentationsHeld: formData.presentationsHeld,
             salesSubmitted: formData.salesSubmitted,
           })
           .then((res) => {
@@ -133,8 +155,37 @@ const Sales = ({ navigation }) => {
           .catch((err) => console.error("post", err.response.data))
           .finally(() => setLoading(false));
       }
+      // Save selected days to AsyncStorage
+      await AsyncStorage.setItem(`${user?._id}_working_days`, JSON.stringify(selectedDays));
+      
     }
   };
+
+  const handleDayPress = (day) => {
+    if (selectedDays?.includes(day)) {
+      setSelectedDays(selectedDays?.filter((d) => d !== day));
+
+    } else {
+      setSelectedDays([...selectedDays, day]);
+    }
+  };
+
+  useEffect(() => {
+    console.log("fetching working days", `${user?._id}_working_days`);
+    const fetchWorkingDays = async () => {
+      try {
+        const workingDays = await AsyncStorage.getItem(`${user?._id}_working_days`);
+        console.log("workingDays", workingDays);
+        if (workingDays) {
+          setSelectedDays(JSON.parse(workingDays));
+        }
+      } catch (error) {
+        console.error("Error fetching working days:", error);
+      }
+    }
+    fetchWorkingDays();
+  }, []);
+    
 
   return (
     <SafeAreaView style={styles.backgroundStyle}>
@@ -162,10 +213,10 @@ const Sales = ({ navigation }) => {
         >
           <Image
             source={require("../../assets/logo.png")}
-            style={{ alignSelf: "center" }}
+            style={{ alignSelf: "center", width: 220, height: 220 }}
           />
 
-          <Text
+          {/* <Text
             style={{
               textAlign: "center",
               fontSize: 32,
@@ -175,7 +226,7 @@ const Sales = ({ navigation }) => {
             }}
           >
             My Sales Coach
-          </Text>
+          </Text> */}
 
           <View
             style={{
@@ -184,14 +235,14 @@ const Sales = ({ navigation }) => {
             }}
           >
             <LeapTextInput
-              label="Annual Sales Targets $ "
+              label="Annual Sales Targets (RM) "
               value={Number(formData.salesTargets).toLocaleString()}
               keyboardType="numeric"
               onChangeText={(text) => handleInputChange("salesTargets", text)}
               isError={formErrors.salesTargetsError}
             />
             <LeapTextInput
-              label={"Average Case Size $ "}
+              label={"Average Case Size (RM) "}
               value={Number(formData.averageCaseSize).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.averageCaseSizeError}
@@ -219,7 +270,7 @@ const Sales = ({ navigation }) => {
             </Text>
 
             <LeapTextInput
-              label={"# Prospecting Approach"}
+              label={"# Prospecting (Call/Direct Approach)"}
               value={Number(formData.prospectingApproach).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.prospectingApproachError}
@@ -228,7 +279,7 @@ const Sales = ({ navigation }) => {
               }
             />
             <LeapTextInput
-              label="# Appointments Kept"
+              label="# Appointment Secured"
               value={Number(formData.appointmentsKept).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.appointmentsKeptError}
@@ -237,12 +288,79 @@ const Sales = ({ navigation }) => {
               }
             />
             <LeapTextInput
-              label={"# Sales Submitted"}
+              label="# Presentation Made"
+              value={Number(formData.presentationsHeld).toLocaleString()}
+              keyboardType="numeric"
+              isError={formErrors.presentationsHeldError}
+              onChangeText={(text) =>
+                handleInputChange("presentationsHeld", text)
+              }
+            />
+            <LeapTextInput
+              label={"# Sales Closed"}
               value={Number(formData.salesSubmitted).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.salesSubmittedError}
               onChangeText={(text) => handleInputChange("salesSubmitted", text)}
             />
+
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 18,
+                fontWeight: "500",
+                marginTop: 30,
+                color: theme.colors.secondary,
+                marginBottom: 10,
+              }}
+            >
+              Select Your Working Days in a Week
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
+              }}
+            >
+              {days.map((day, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => handleDayPress(day)}
+                  style={{
+                    width: "28%",
+                    marginVertical: 8,
+                    marginHorizontal: "2%",
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    borderWidth: 1.5,
+                    alignItems: "center",
+                    backgroundColor: selectedDays?.includes(day)
+                      ? "#ff914d"
+                      : "transparent",
+                    borderColor: selectedDays?.includes(day)
+                      ? "#ff914d"
+                      : "#ff914d",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 1.41,
+                    elevation: 2,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: selectedDays?.includes(day) ? "#fff" : "#ccc",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {day}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
             <Button
               loading={loading}

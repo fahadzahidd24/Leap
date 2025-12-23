@@ -291,6 +291,32 @@ const EffectivenessReport = () => {
     return Math.ceil(SalesRatio * 100);
   };
 
+  console.log("entries?.SuccessFormula", entries?.SuccessFormula)
+
+  const calculatePresentationRatioGoal = (entries) => {
+    const presentationsHeld = entries?.SuccessFormula?.presentationsHeld || 0;
+    const prospectingApproach = entries?.SuccessFormula?.prospectingApproach || 0;
+
+    return Math.floor((presentationsHeld / prospectingApproach) * 100) || 0;
+  };
+
+  console.log("calculatePresentationRatioGoal", entries?.yearly_achieved)
+
+  const calculatePresentationRatioAchieved = (entries) => {
+    const yearlyAchievedA = entries?.yearly_achieved?.a_yearly;
+    const yearlyAchievedP = entries?.yearly_achieved?.p_yearly;
+
+    if (!yearlyAchievedA || !yearlyAchievedP) return 0;
+
+    const PresentationRatio = yearlyAchievedP / yearlyAchievedA;  
+
+    if (PresentationRatio === 0 || isNaN(PresentationRatio) || PresentationRatio === Infinity) {
+      return 0;
+    }
+
+    return Math.ceil(PresentationRatio * 100);
+  };
+
   const AddNewPlan = () => {
     setAddEventModalVisible(true);
   };
@@ -401,13 +427,13 @@ const EffectivenessReport = () => {
               color="white"
               style={{ marginHorizontal: 3 }}
             /> */}
-            <MaterialCommunityIcons
+            {/* <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
               name="calendar-month"
               size={27}
               color="white"
-            />
+            /> */}
             <MaterialCommunityIcons
               name="progress-check"
               onPress={() => navigation.navigate("Annual Progress")}
@@ -471,6 +497,25 @@ const EffectivenessReport = () => {
             goal={calculateSalesRatioGoal(entries)}
             achieved={calculateSalesRatioAchieved(entries)}
             backgroundColor={"#00bf63"}
+          />
+
+          <Text
+            style={{
+              fontSize: 21,
+              // backgroundColor: "red",
+              marginTop: 20,
+              marginBottom: 5,
+              fontWeight: "bold",
+              color: theme.colors.secondary,
+            }}
+          >
+            Presentation Ratio
+          </Text>
+
+          <Category
+            goal={calculatePresentationRatioGoal(entries)}
+            achieved={calculatePresentationRatioAchieved(entries)}
+            backgroundColor={"#cb6be5"}
           />
         </View>
 

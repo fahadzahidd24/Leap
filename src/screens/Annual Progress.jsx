@@ -38,6 +38,16 @@ const AnnualProgress = () => {
     }, [token])
   );
 
+  console.log("entries?.SalesTargets", entries?.SalesTargets)
+
+  console.log(entries?.yearly_achieved?.totalPremiumYearly)
+  console.log(entries?.SalesTargets?.salesTargets) 
+
+  console.log((entries?.yearly_achieved?.totalPremiumYearly /
+    entries?.SalesTargets?.salesTargets) *
+    100 || 0)
+
+  
   return (
     <SafeAreaView style={styles.backgroundStyle}>
       <StatusBar
@@ -93,13 +103,13 @@ const AnnualProgress = () => {
               color="white"
               style={{ marginHorizontal: 3 }}
             /> */}
-            <MaterialCommunityIcons
+            {/* <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
               name="calendar-month"
               size={27}
               color="white"
-            />
+            /> */}
             {/* <MaterialCommunityIcons
               name="progress-check"
               size={28}
@@ -126,7 +136,7 @@ const AnnualProgress = () => {
         >
           <Text
             style={{
-              fontSize: 32,
+              fontSize: 25,
               fontWeight: "700",
               color: "black",
               textAlign: "center",
@@ -144,7 +154,7 @@ const AnnualProgress = () => {
               textAlign: "center",
             }}
           >
-            $
+            RM{" "}
             {(
               entries?.SalesTargets?.salesTargets -
                 entries?.yearly_achieved?.totalPremiumYearly || 0
@@ -169,7 +179,7 @@ const AnnualProgress = () => {
                   textAlign: "center",
                 }}
               >
-                $
+                RM{" "}
                 {entries?.yearly_achieved?.totalPremiumYearly?.toLocaleString() ||
                   0}
               </Text>
@@ -287,13 +297,14 @@ const AnnualProgress = () => {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-around",
+              gap:20,
               marginTop: 20,
             }}
           >
             <View style={{ alignItems: "center" }}>
               <Text
                 style={{
-                  fontSize: 32,
+                  fontSize: 25,
                   fontWeight: "700",
                   color: "white",
                   textAlign: "center",
@@ -309,13 +320,13 @@ const AnnualProgress = () => {
                       entries?.daily_goals?.p_daily)) *
                     100 || 0
                 ).toFixed(0)}
-                sx={"large"}
+                sx={"small"}
               />
             </View>
             <View style={{ alignItems: "center" }}>
               <Text
                 style={{
-                  fontSize: 32,
+                  fontSize: 25,
                   fontWeight: "700",
                   color: "white",
                   textAlign: "center",
@@ -331,13 +342,35 @@ const AnnualProgress = () => {
                       entries?.daily_goals?.a_daily)) *
                     100 || 0
                 ).toFixed(0)}
-                sx={"large"}
+                sx={"small"}
               />
             </View>
             <View style={{ alignItems: "center" }}>
               <Text
                 style={{
-                  fontSize: 32,
+                  fontSize: 25,
+                  fontWeight: "700",
+                  color: "white",
+                  textAlign: "center",
+                  marginBottom: 25,
+                }}
+              >
+                P
+              </Text>
+              <ProgressBar
+                percentage={(
+                  (entries?.yearly_achieved?.pr_yearly /
+                    (entries?.yearly_achieved?.total_days *
+                      entries?.daily_goals?.pr_daily)) *
+                    100 || 0
+                ).toFixed(0)}
+                sx={"small"}
+              />
+            </View>
+            <View style={{ alignItems: "center" }}>
+              <Text
+                style={{
+                  fontSize: 25,
                   fontWeight: "700",
                   color: "white",
                   textAlign: "center",
@@ -353,7 +386,7 @@ const AnnualProgress = () => {
                       entries?.daily_goals?.s_daily)) *
                     100 || 0
                 ).toFixed(0)}
-                sx={"large"}
+                sx={"small"}
               />
             </View>
           </View>

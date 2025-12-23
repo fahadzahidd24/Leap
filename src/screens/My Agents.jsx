@@ -30,13 +30,18 @@ const MyAgents = ({ navigation }) => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  console.log("agents", agents);
+
+  console.log("token", token);
+  console.log("_id", _id);
+
   useFocusEffect(
     React.useCallback(() => {
       if (token) {
         privateApi(token)
-          .get(`/agents`)
+          .get(`/agents/${_id}`)
           .then((res) => {
-            setAgents(res.data);
+            setAgents(res.data.userDetails);
           })
           .catch((err) => console.error(err))
           .finally(() => setLoading(false));
@@ -44,13 +49,13 @@ const MyAgents = ({ navigation }) => {
     }, [token])
   );
 
-  const AgentComponent = ({ navigation, id, fullName, email }) => {
+  const AgentComponent = ({ navigation, id, fullName, utcCode }) => {
     return (
       <View style={styles.inboxContainer}>
         <View style={styles.leftSideView}>
           <View>
             <Text style={styles.userName}>{fullName}</Text>
-            <Text style={styles.message}>{email}</Text>
+            <Text style={styles.message}>{utcCode}</Text>
           </View>
         </View>
 
@@ -67,7 +72,7 @@ const MyAgents = ({ navigation }) => {
             }
           /> */}
 
-          <MaterialCommunityIcons
+          {/* <MaterialCommunityIcons
             onPress={() =>
               navigation.navigate("DailySchedule1", {
                 userId: id,
@@ -77,7 +82,7 @@ const MyAgents = ({ navigation }) => {
             name="calendar-month"
             size={30}
             color="black"
-          />
+          /> */}
 
           <AntDesign
             name="message1"
@@ -156,7 +161,7 @@ const MyAgents = ({ navigation }) => {
               navigation={navigation}
               id={item.id}
               fullName={item.fullName}
-              email={item.email}
+              utcCode={item.utcCode}
             />
           )}
         />

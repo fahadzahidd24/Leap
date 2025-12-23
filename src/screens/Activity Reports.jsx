@@ -180,13 +180,13 @@ const ActivityReports = () => {
               color="white"
               style={{ marginHorizontal: 3 }}
             /> */}
-            <MaterialCommunityIcons
+            {/* <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
               name="calendar-month"
               size={27}
               color="white"
-            />
+            /> */}
             <MaterialCommunityIcons
               name="progress-check"
               onPress={() => navigation.navigate("Annual Progress")}
@@ -228,6 +228,12 @@ const ActivityReports = () => {
             backgroundColor={"#ffca08"}
           />
           <Category
+            text={"P"}
+            goals={entries?.daily_goals?.pr_daily || 0}
+            achieved={entries?.daily_achieved?.pr_daily || 0}
+            backgroundColor={"#cb6be5"}
+          />
+          <Category
             text={"S"}
             goals={entries?.daily_goals?.s_daily || 0}
             achieved={entries?.daily_achieved?.s_daily?.length || 0}
@@ -258,6 +264,12 @@ const ActivityReports = () => {
             goals={entries?.weekly_goals?.a_weekly || 0}
             achieved={entries?.weekly_achieved?.a_weekly || 0}
             backgroundColor={"#ffca08"}
+          />
+          <Category
+            text={"P"}
+            goals={entries?.weekly_goals?.pr_weekly || 0}
+            achieved={entries?.weekly_achieved?.pr_weekly || 0}
+            backgroundColor={"#cb6be5"}
           />
           <Category
             text={"S"}

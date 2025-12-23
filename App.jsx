@@ -118,7 +118,8 @@ function StartUp() {
           await Location.requestForegroundPermissionsAsync();
         if (status !== "granted" || status1 !== "granted") {
           console.log("Permission to access location was denied");
-          Alert.alert("Error", "Permission to access location was denied");
+          // ask for permission
+          // Alert.alert("Location Permission Denied", "Permission to access location was denied. Please go to settings > apps > LEAP and enable location access.");
           return;
         }
 

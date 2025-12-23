@@ -4,7 +4,7 @@ export const getAddressFromCoordinates = async (latitude, longitude) => {
   try {
     const apiKey = "YOUR_GOOGLE_MAPS_API_KEY";
     const response = await axios.get(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyA7MT7Dx9W58D1PGlFH6f1S2zO7lymcDqg`
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU`
     );
 
     if (response.data.status === "OK") {

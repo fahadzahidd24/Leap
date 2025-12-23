@@ -1,65 +1,63 @@
 {
   "expo": {
-    "name": "Leap",
-    "slug": "Leap",
-    "version": "33.0.0",
+    "name": "Strides",
+    "slug": "Strides",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "leap",
-    "icon": "./assets/icon.png",
+    "scheme": "strides",
+    "icon": "./assets/appIcon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splashScreen.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#3971c2"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gitsa.Leap",
-      "buildNumber": "33",
+      "bundleIdentifier": "com.softwarepro.strides",
+      "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app uses your location to track agents.",
         "NSLocationAlwaysUsageDescription": "This app uses your location to track agents even when the app is in the background.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
-        "googleMapsApiKey": "AIzaSyA7MT7Dx9W58D1PGlFH6f1S2zO7lymcDqg"
-      }
+        "googleMapsApiKey": "AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU"
+      },
+      "appleTeamId": "F73ZDW26LC"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/appIcon.png",
+        "backgroundColor": "#3971c2"
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyA7MT7Dx9W58D1PGlFH6f1S2zO7lymcDqg"
+          "apiKey": "AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU"
         }
       },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.gitsa.Leap"
+      "package": "com.softwarepro.strides"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
       "expo-font",
       [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
-        "projectId": "e74f942a-614c-4d8a-b494-e25f4db22b26"
+        "projectId": "91bfd0ea-c748-4c90-b1d9-79b2cbbac241"
       }
     },
     "owner": "fahadzahidd24"

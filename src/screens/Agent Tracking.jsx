@@ -39,6 +39,7 @@ import { getDistanceBetweenCoordinates } from "../utils/calculateDistance";
 import { privateApi, publicURL } from "../api/axios";
 import { useFocusEffect } from "@react-navigation/native";
 import { debounce } from "lodash";
+import FastImage from "react-native-fast-image";
 
 const AgentTracking = ({ navigation }) => {
   const user = useSelector((state) => state.User);
@@ -183,8 +184,12 @@ const AgentTracking = ({ navigation }) => {
         }}
         style={styles.itemContainer}
       >
-        <Image
-          source={{ uri: `${publicURL}${item?.profilePic}` }}
+        <FastImage
+          source={{
+            uri: `${publicURL}${item?.profilePic}`,
+            priority: FastImage.priority.normal,
+            cache: FastImage.cacheControl.immutable,
+          }}        
           style={styles.profileImage}
         />
         <View style={styles.textContainer}>
@@ -284,13 +289,13 @@ const AgentTracking = ({ navigation }) => {
             color="white"
             style={{ marginHorizontal: 3 }}
           /> */}
-          <MaterialCommunityIcons
+          {/* <MaterialCommunityIcons
             onPress={() => navigation.navigate("My Agents")}
             style={{ marginHorizontal: 3 }}
             name="calendar-month"
             size={27}
             color="white"
-          />
+          /> */}
           <AntDesign
             name="message1"
             size={23}
@@ -346,8 +351,12 @@ const AgentTracking = ({ navigation }) => {
                 flat={true}
                 anchor={{ x: 0.5, y: 0.5 }}
               >
-                <Image
-                  source={{ uri: `${publicURL}${agent?.profilePic}` }}
+                <FastImage
+                  source={{
+                    uri: `${publicURL}${agent?.profilePic}`,
+                    priority: FastImage.priority.normal,
+                    cache: FastImage.cacheControl.immutable,
+                  }}      
                   style={{ width: 40, height: 40, borderRadius: 20 }}
                 />
               </Marker>
@@ -498,6 +507,18 @@ const AgentTracking = ({ navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.row}>
+                  <Text style={styles.label}>YTD P:</Text>
+                  <Text style={styles.value}>
+                    {(
+                      (agentPAS?.pr_yearly /
+                        (agentPAS?.total_days *
+                          agentEntries?.daily_goals?.pr_daily)) *
+                        100 || 0
+                    ).toFixed(0)}
+                    %
+                  </Text>
+                </View>
+                <View style={styles.row}>
                   <Text style={styles.label}>YTD S:</Text>
                   <Text style={styles.value}>
                     {(
@@ -522,6 +543,7 @@ const AgentTracking = ({ navigation }) => {
                     %
                   </Text>
                 </View>
+
                 <View style={styles.row}>
                   <Text style={styles.label}>Sales Ratio:</Text>
                   <Text style={styles.value}>
@@ -535,7 +557,7 @@ const AgentTracking = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD Premium:</Text>
                   <Text style={styles.value}>
-                    ${agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
+                    RM{agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
                   </Text>
                 </View>
                 <View style={styles.row}>

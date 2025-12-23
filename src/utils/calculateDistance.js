@@ -17,7 +17,7 @@
 // }
 
 export async function getDistanceBetweenCoordinates(lat1, lon1, lat2, lon2) {
-  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${lat1},${lon1}&destinations=${lat2},${lon2}&key=AIzaSyA7MT7Dx9W58D1PGlFH6f1S2zO7lymcDqg`;
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${lat1},${lon1}&destinations=${lat2},${lon2}&key=AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU`;
 
   try {
     const response = await fetch(url);
@@ -27,6 +27,7 @@ export async function getDistanceBetweenCoordinates(lat1, lon1, lat2, lon2) {
       const distanceText = data.rows[0].elements[0].distance.text;
       // console.log(distanceText) // e.g., "1200 ft"
       let distanceInMiles;
+
 
       if (distanceText.includes("ft")) {
         // Extract the numeric value and convert to miles

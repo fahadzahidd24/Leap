@@ -61,9 +61,9 @@ const Profession =  ({ navigation }) => {
         <View>
           <Image
             source={require("../../../assets/logo.png")}
-            style={{ alignSelf: "center" }}
+            style={{ alignSelf: "center", width: 220, height: 220 }}
           />
-          <Text
+          {/* <Text
             style={{
               textAlign: "center",
               fontSize: 28,
@@ -73,7 +73,7 @@ const Profession =  ({ navigation }) => {
             }}
           >
             My Sales Coach
-          </Text>
+          </Text> */}
         </View>
 
         <View style={{ width: "80%", marginVertical: "5%" }}>

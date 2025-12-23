@@ -85,7 +85,7 @@ const ChatCoach = ({ navigation }) => {
         alwaysBounceVertical={false}
         bounces={false}
       >
-        <Image source={require('../../../assets/logo.png')} />
+        <Image source={require('../../../assets/logo.png')} style={{ width: 220, height: 220 }} />
         <View style={{ width: "80%", marginVertical: "5%" }}>
           <Text style={{
             textAlign: "center",

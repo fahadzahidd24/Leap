@@ -25,11 +25,12 @@ import { pickImageFromGallery } from "../utils/pickImageFromGallery.js";
 const SignUp = ({ navigation }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    email: "",
+    // email: "",
     password: "",
     name: "",
     role: "",
     companyName: "",
+    utcCode: "",
   });
   const [image, setImage] = useState(null);
   const [pickedImage, setPickedImage] = useState(null);
@@ -41,23 +42,26 @@ const SignUp = ({ navigation }) => {
     setFormData({ ...formData, [field]: value });
     setFormErrors({ ...formErrors, [field]: false });
   };
-
+ 
   const validateFields = () => {
     const errors = {};
 
     if (!formData.name.trim()) errors.name = true;
     if (!formData.role) errors.role = true;
     if (!formData.companyName.trim()) errors.companyName = true;
-    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
-      errors.email = true;
-    if (!formData.password.trim() || formData.password.length < 8)
+    // if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
+    //   errors.email = true;
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
+    if (!formData.password.trim() || !passwordRegex.test(formData.password))
       errors.password = true;
-    if (!image) {
-      setImageError(true);
-      return false;
-    }
-
+    if(!formData.utcCode) errors.utcCode = true;
+    
     setFormErrors(errors);
+    
+    // if (!image) {
+    //   setImageError(true);
+    //   return false;
+    // }
 
     return !Object.values(errors).some(Boolean);
   };
@@ -71,11 +75,12 @@ const SignUp = ({ navigation }) => {
       // Create a new FormData instance
       const formData1 = new FormData();
 
-      formData1.append("email", formData.email);
+      // formData1.append("email", formData.email);
       formData1.append("password", formData.password);
       formData1.append("fullName", formData.name);
       formData1.append("role", formData.role);
       formData1.append("companyName", formData.companyName);
+      formData1.append("utcCode", formData.utcCode);
       formData1.append("profilePic", image);
 
       // Make the POST request with multipart/form-data content type
@@ -126,10 +131,10 @@ const SignUp = ({ navigation }) => {
         >
           <Image
             source={require("../../assets/logo.png")}
-            style={styles.logo}
+            style={[styles.logo, { width: 220, height: 220 }]}
           />
-          <Text style={styles.title}>My Sales Coach</Text>
-          <Text style={styles.subtitle}>“My Best Partner In Sales”</Text>
+          {/* <Text style={styles.title}>My Sales Coach</Text> */}
+          <Text style={styles.subtitle}>You Get What You Track</Text>
           <View style={styles.inputContainer}>
             <TouchableOpacity
               style={{
@@ -137,7 +142,7 @@ const SignUp = ({ navigation }) => {
                 height: 100,
                 borderRadius: 50,
                 borderWidth: 1,
-                borderColor: imageError ? "red" : "white",
+                borderColor: "white",
                 alignItems: "center",
                 alignSelf: "center",
                 justifyContent: "center",
@@ -158,7 +163,7 @@ const SignUp = ({ navigation }) => {
                 <Ionicons
                   name="camera-outline"
                   size={40}
-                  color={imageError ? "red" : "white"}
+                  color={imageError ? "white" : "white"}
                 />
               )}
             </TouchableOpacity>
@@ -179,13 +184,21 @@ const SignUp = ({ navigation }) => {
               onChangeText={(text) => handleInputChange("companyName", text)}
               isError={formErrors.companyName}
             />
-            <LeapTextInput
+            {/* <LeapTextInput
               label="Email"
               value={formData.email}
               keyboardType="email-address"
               autoComplete="email"
               onChangeText={(text) => handleInputChange("email", text)}
               isError={formErrors.email}
+            /> */}
+            <LeapTextInput
+              label="UTC Code"
+              value={formData.utcCode}
+              keyboardType="default"
+              // autoComplete="email"
+              onChangeText={(text) => handleInputChange("utcCode", text)}
+              isError={formErrors.utcCode}
             />
             <LeapTextInput
               label="Password"
@@ -193,7 +206,13 @@ const SignUp = ({ navigation }) => {
               value={formData.password}
               onChangeText={(text) => handleInputChange("password", text)}
               isError={formErrors.password}
+
             />
+            {formErrors.password && (
+              <Text style={{ color: "red", marginBottom: 10 }}>
+                Password must be at least 6 characters with 1 uppercase, 1 lowercase, and 1 number.
+              </Text>
+            )}
 
             <LeapRadioButton
               options={[
@@ -242,7 +261,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     justifyContent: "center",
-    paddingVertical: 50,
+    paddingBottom: 50,
     paddingHorizontal: 10,
     flexGrow: 1,
   },
@@ -260,8 +279,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontStyle: "italic",
+    
     marginHorizontal: 5,
-    marginTop: 80,
+    marginTop: 20,
     color: theme.colors.secondary,
   },
   inputContainer: {

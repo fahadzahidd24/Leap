@@ -156,7 +156,7 @@ const Inbox = ({ navigation }) => {
             color="white"
             style={{ marginHorizontal: 3 }} // Increase horizontal margin for better spacing
           /> */}
-          <MaterialCommunityIcons
+          {/* <MaterialCommunityIcons
             onPress={() =>
               navigation.navigate(
                 role === "agent" ? "DailySchedule" : "My Agents"
@@ -166,7 +166,7 @@ const Inbox = ({ navigation }) => {
             name="calendar-month"
             size={27}
             color="white"
-          />
+          /> */}
           {/* <AntDesign
             name="message1"
             size={23}

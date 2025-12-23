@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import Feather from "@expo/vector-icons/Feather";
 import useSocket from "../hooks/useSocket";
-import { addMessage, setChat } from "../redux/features/chatSlice";
+// import { addMessage, setChat } from "../redux/features/chatSlice";
 import { theme } from "../constants/theme";
 import { privateApi } from "../api/axios";
 import Loader from "../components/Loader";
@@ -31,7 +31,9 @@ const Chat = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { onEvent, sendEvent, socket } = useSocket();
   const [messageText, setMessageText] = useState("");
-  const messages = useSelector((state) => state.Chat.messages);
+  const [messages, setMessages] = useState([]);
+
+  // const messages = useSelector((state) => state.Chat.messages);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -56,7 +58,8 @@ const Chat = ({ navigation, route }) => {
               type: "receiver",
             };
 
-            dispatch(addMessage({ message: msgObj, unread: 1 }));
+            // dispatch(addMessage({ message: msgObj, unread: 1 }));
+            setMessages((prevMessages) => [...prevMessages, msgObj]);
           }
         };
 
@@ -100,12 +103,14 @@ const Chat = ({ navigation, route }) => {
               return msgObj;
             });
 
-            dispatch(
-              setChat({
-                messages: newMessages,
-                unread: 0,
-              })
-            );
+            setMessages(newMessages);
+
+            // dispatch(
+            //   setChat({
+            //     messages: newMessages,
+            //     unread: 0,
+            //   })
+            // );
           })
           .catch((err) => console.error(err))
           .finally(() => setLoading(false));
@@ -139,7 +144,8 @@ const Chat = ({ navigation, route }) => {
         type: "sender",
       };
 
-      dispatch(addMessage({ message: msgObj }));
+      // dispatch(addMessage({ message: msgObj }));
+      setMessages((prevMessages) => [...prevMessages, msgObj]);
       setMessageText("");
 
       sendEvent("send_message", {
@@ -218,12 +224,13 @@ const Chat = ({ navigation, route }) => {
 
           <View style={styles.inputContainer}>
             <View style={styles.inputX}>
-              <TextInput
-                style={styles.input}
-                placeholder="Type a message here"
-                onChangeText={setMessageText}
-                value={messageText}
-              />
+            <TextInput
+  style={styles.input}
+  placeholder="Type a message here"
+  onChangeText={setMessageText}
+  value={messageText}
+  multiline={true}
+/>
               <TouchableOpacity onPress={sendMessage}>
                 <Feather name="send" size={24} color="black" />
               </TouchableOpacity>

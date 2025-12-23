@@ -13,6 +13,9 @@ export const entriesSlice = createSlice({
     setWeeklyAchieved: (state, action) => {
       return { ...state, weekly_achieved: action.payload.weekly };
     },
+    setMonthlyAchieved: (state, action) => {
+      return { ...state, monthly_achieved: action.payload.monthly };
+    },
     setYearlyAchieved: (state, action) => {
       return { ...state, yearly_achieved: action.payload.yearly };
     },
@@ -27,6 +30,7 @@ export const {
   setEntries,
   setDailyAchieved,
   setWeeklyAchieved,
+  setMonthlyAchieved,
   setYearlyAchieved,
   resetEntries,
 } = entriesSlice.actions;
