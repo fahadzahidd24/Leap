@@ -40,6 +40,7 @@ import { privateApi, publicURL } from "../api/axios";
 import { useFocusEffect } from "@react-navigation/native";
 import { debounce } from "lodash";
 import FastImage from "react-native-fast-image";
+import { formatPercentage } from "../utils/formatPercentage";
 
 const AgentTracking = ({ navigation }) => {
   const user = useSelector((state) => state.User);
@@ -231,18 +232,11 @@ const AgentTracking = ({ navigation }) => {
   };
 
   const calculateSalesRatioAchieved = (agentPAS) => {
-    const yearlyAchievedA = agentPAS?.a_yearly;
-    const yearlyAchievedS = agentPAS?.p_yearly;
+    const yearlyAchievedPR = agentPAS?.pr_yearly || 0;
+    const yearlyAchievedS = agentPAS?.s_yearly || 0;
 
-    if (!yearlyAchievedA || !yearlyAchievedS) return 0;
-
-    const SalesRatio = yearlyAchievedS / yearlyAchievedA;
-
-    if (SalesRatio === 0 || isNaN(SalesRatio) || SalesRatio === Infinity) {
-      return 0;
-    }
-
-    return Math.ceil(SalesRatio * 100);
+    // Let division handle NaN/Infinity naturally for proper display
+    return (yearlyAchievedS / yearlyAchievedPR) * 100;
   };
 
   return (
@@ -485,49 +479,45 @@ const AgentTracking = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD P:</Text>
                   <Text style={styles.value}>
-                    {(
+                    {formatPercentage(
                       (agentPAS?.p_yearly /
                         (agentPAS?.total_days *
                           agentEntries?.daily_goals?.p_daily)) *
-                        100 || 0
-                    ).toFixed(0)}
-                    %
+                        100
+                    )}
                   </Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD A:</Text>
                   <Text style={styles.value}>
-                    {(
+                    {formatPercentage(
                       (agentPAS?.a_yearly /
                         (agentPAS?.total_days *
                           agentEntries?.daily_goals?.a_daily)) *
-                        100 || 0
-                    ).toFixed(0)}
-                    %
+                        100
+                    )}
                   </Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD P:</Text>
                   <Text style={styles.value}>
-                    {(
+                    {formatPercentage(
                       (agentPAS?.pr_yearly /
                         (agentPAS?.total_days *
                           agentEntries?.daily_goals?.pr_daily)) *
-                        100 || 0
-                    ).toFixed(0)}
-                    %
+                        100
+                    )}
                   </Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD S:</Text>
                   <Text style={styles.value}>
-                    {(
+                    {formatPercentage(
                       (agentPAS?.s_yearly /
                         (agentPAS?.total_days *
                           agentEntries?.daily_goals?.s_daily)) *
-                        100 || 0
-                    ).toFixed(0)}
-                    %
+                        100
+                    )}
                   </Text>
                 </View>
               </View>
@@ -537,17 +527,16 @@ const AgentTracking = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>Appointments Ratio:</Text>
                   <Text style={styles.value}>
-                    {Math.ceil(
-                      (agentPAS?.a_yearly / agentPAS?.p_yearly) * 100 || 0
+                    {formatPercentage(
+                      (agentPAS?.a_yearly / agentPAS?.p_yearly) * 100
                     )}
-                    %
                   </Text>
                 </View>
 
                 <View style={styles.row}>
                   <Text style={styles.label}>Sales Ratio:</Text>
                   <Text style={styles.value}>
-                    {calculateSalesRatioAchieved(agentPAS)}%
+                    {formatPercentage(calculateSalesRatioAchieved(agentPAS))}
                   </Text>
                 </View>
               </View>
@@ -563,12 +552,11 @@ const AgentTracking = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>Progress:</Text>
                   <Text style={styles.value}>
-                    {(
+                    {formatPercentage(
                       (agentPAS?.totalPremiumYearly /
                         agentEntries?.SalesTargets?.salesTargets) *
-                        100 || 0
-                    ).toFixed(0)}
-                    %
+                        100
+                    )}
                   </Text>
                 </View>
               </View>

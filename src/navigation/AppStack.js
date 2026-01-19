@@ -26,8 +26,6 @@ import AnnualProgress from "../screens/Annual Progress";
 import Octicons from "@expo/vector-icons/Octicons";
 import DailySchedule from "../screens/Daily Schedule";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import Inbox from "../screens/Inbox";
-import Chat from "../screens/Chat";
 import MyAgents from "../screens/My Agents";
 import { resetCurrentCoordinates } from "../redux/features/locationSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
@@ -64,7 +62,6 @@ const getIconForRoute = (routeName) => {
     Home: { component: Feather, name: "home" },
     tabs: { component: MaterialCommunityIcons, name: "view-dashboard-outline" },
     Sales: { component: Ionicons, name: "stats-chart-outline" },
-    Inbox: { component: Feather, name: "inbox" },
     "My Agents": { component: Feather, name: "users" },
     Profession: { component: Feather, name: "briefcase" },
     ChatCoach: { component: Ionicons, name: "chatbubbles-outline" },
@@ -523,7 +520,6 @@ const ManagerDrawerNav = () => {
 
   const managerRoutes = [
     { name: "My Agents", label: "My Agents" },
-    { name: "Inbox", label: "Inbox" },
   ];
 
   return (
@@ -566,14 +562,6 @@ const ManagerDrawerNav = () => {
         component={MyAgents}
         options={{
           drawerLabel: "My Agents",
-        }}
-      />
-      <Drawer.Screen
-        name="Inbox"
-        component={Inbox}
-        options={{
-          drawerLabel: "Inbox",
-          title: "",
         }}
       />
     </Drawer.Navigator>
@@ -742,11 +730,6 @@ export default AppStack = () => {
         </>
       )}
 
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="Chat"
-        component={Chat}
-      />
       <Stack.Screen
         options={{ headerShown: false }}
         name="Masterclass"

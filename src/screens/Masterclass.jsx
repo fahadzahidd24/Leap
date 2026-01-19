@@ -17,10 +17,11 @@ const videos = [
   {
     key: "P",
     title: "Pre-Approach",
-    subtitle: "Prospects Contacted",
+    subtitle: "Prospecting (Call/Direct Approach)",
     description: "Learn effective techniques for reaching out to prospects and making first contact.",
     color: "#ff5757",
     icon: "account-search",
+    thumbnail: require("../../assets/pre-approach-thumbnail.png"),
   },
   {
     key: "A",
@@ -29,6 +30,7 @@ const videos = [
     description: "Master the art of securing appointments and building initial rapport.",
     color: "#ffca08",
     icon: "calendar-check",
+    thumbnail: require("../../assets/approach-thumbnail.png"),
   },
   {
     key: "S",
@@ -37,33 +39,41 @@ const videos = [
     description: "Discover proven closing techniques to seal the deal confidently.",
     color: "#00bf63",
     icon: "handshake",
+    thumbnail: require("../../assets/sales-thumbnail.png"),
   },
 ];
 
 const VideoCard = ({ video, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: video.color }]}
+      style={styles.card}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={styles.cardContent}>
-        <View style={[styles.iconContainer, { backgroundColor: video.color }]}>
-          <MaterialCommunityIcons name={video.icon} size={30} color="white" />
-        </View>
-        <View style={styles.textContainer}>
-          <View style={styles.titleRow}>
-            <Text style={styles.cardTitle}>{video.title}</Text>
-            <View style={[styles.badge, { backgroundColor: video.color }]}>
-              <Text style={styles.badgeText}>{video.key}</Text>
-            </View>
+      {/* Thumbnail */}
+      <View style={styles.thumbnailContainer}>
+        <Image
+          source={video.thumbnail}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+        {/* Play button overlay */}
+        <View style={styles.playOverlay}>
+          <View style={[styles.playButton, { backgroundColor: video.color }]}>
+            <Ionicons name="play" size={24} color="white" />
           </View>
-          <Text style={styles.cardSubtitle}>{video.subtitle}</Text>
-          <Text style={styles.cardDescription}>{video.description}</Text>
+        </View>
+        {/* Badge */}
+        <View style={[styles.thumbnailBadge, { backgroundColor: video.color }]}>
+          <Text style={styles.badgeText}>{video.key}</Text>
         </View>
       </View>
-      <View style={styles.playIconContainer}>
-        <Ionicons name="play-circle" size={40} color={video.color} />
+      
+      {/* Content */}
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>{video.title}</Text>
+        <Text style={styles.cardSubtitle}>{video.subtitle}</Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>{video.description}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -201,47 +211,56 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 16,
     marginBottom: 16,
-    padding: 16,
-    borderLeftWidth: 5,
-    flexDirection: "row",
-    alignItems: "center",
+    overflow: "hidden",
   },
-  cardContent: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
+  thumbnailContainer: {
+    position: "relative",
+    height: 160,
+    width: "100%",
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
+  thumbnail: {
+    width: "100%",
+    height: "100%",
+  },
+  playOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
-  textContainer: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: "row",
+  playButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 4,
+    paddingLeft: 4,
+  },
+  thumbnailBadge: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  cardContent: {
+    padding: 16,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
-    marginRight: 8,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
+    marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
@@ -252,9 +271,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#888",
     lineHeight: 18,
-  },
-  playIconContainer: {
-    marginLeft: 10,
   },
   infoSection: {
     flexDirection: "row",

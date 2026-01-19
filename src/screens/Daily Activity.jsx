@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { theme } from "../constants/theme";
-import { formattedDate } from "../utils/currentDate&Day";
+import { formattedDate, getMalaysianDateString, TIMEZONE } from "../utils/currentDate&Day";
 import { EvilIcons, MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -29,9 +29,10 @@ import {
 } from "../redux/features/entriesSlice";
 import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { calcPercentage } from "../utils/formatPercentage";
 
 const videoTitles = {
-  P: "Pre-Approach - Prospects Contacted",
+  P: "Pre-Approach - Prospecting (Call/Direct Approach)",
   A: "Approach - Appointment Secured",
   PR: "Presentation - Presentations Made",
   S: "Closing - Sales Closed",
@@ -55,6 +56,7 @@ const Activity = ({
   const [premiumInput, setPremiumInput] = useState("0");
   const [pressedItem, setPressedItem] = useState(null);
   const InputRef = useRef(null);
+  const isSubmittingRef = useRef(false);
   const rootNavigation = useNavigation();
 
   const data = Array.from({ length: 50 }, (_, index) => index);
@@ -248,15 +250,25 @@ const Activity = ({
                     ref={InputRef}
                     cursorColor={"white"}
                     onSubmitEditing={() => {
-                      if (pressedItem && premiumInput.length > 0) {
+                      if (pressedItem && premiumInput.length > 0 && !isSubmittingRef.current) {
+                        isSubmittingRef.current = true;
                         onPress(pressedItem, premiumInput);
+                        setPressedItem(null);
+                        setTimeout(() => {
+                          isSubmittingRef.current = false;
+                        }, 500);
                       }
                     }}
                     onBlur={
                       Platform.OS === "ios" &&
                       (() => {
-                        if (pressedItem && premiumInput.length > 0) {
+                        if (pressedItem && premiumInput.length > 0 && !isSubmittingRef.current) {
+                          isSubmittingRef.current = true;
                           onPress(pressedItem, premiumInput);
+                          setPressedItem(null);
+                          setTimeout(() => {
+                            isSubmittingRef.current = false;
+                          }, 500);
                         }
                       })
                     }
@@ -361,11 +373,7 @@ const Activity = ({
                   marginLeft: 2,
                 }}
               >
-                {Number(
-                  ((status === "S" ? achieved?.length : achieved) / goals) *
-                    100 || 0
-                ).toFixed(0)}
-                %
+                {calcPercentage(status === "S" ? achieved?.length : achieved, goals)}
               </Text>
             </View>
           </View>
@@ -426,16 +434,23 @@ const DailyActivity = ({ navigation }) => {
     React.useCallback(() => {
       if (token) {
         privateApi(token)
-          .get(`/pas/daily?date=${new Date().toLocaleDateString("en-GB")}`)
+          .get(`/pas/daily?date=${getMalaysianDateString()}`)
           .then((res) => {
             dispatch(setDailyAchieved({ daily: res.data.pas }));
           })
           .catch((err) => console.error(err));
 
         privateApi(token)
-          .get(`/pas/weekly?date=${new Date().toLocaleDateString("en-GB")}`)
+          .get(`/pas/weekly?date=${getMalaysianDateString()}`)
           .then((res) => {
             dispatch(setWeeklyAchieved({ weekly: res.data.pas }));
+          })
+          .catch((err) => console.error(err));
+
+        privateApi(token)
+          .get("/pas/annual")
+          .then((res) => {
+            dispatch(setYearlyAchieved({ yearly: res.data.pas }));
           })
           .catch((err) => console.error(err))
           .finally(() => setLoading(false));
@@ -451,11 +466,22 @@ const DailyActivity = ({ navigation }) => {
         .then((res) => {
           const daily = res.data.pas;
 
+          dispatch(setDailyAchieved({ daily }));
+          console.log("daily 222333", daily);
+
+          // Fetch weekly data
           privateApi(token)
-            .get(`/pas/weekly?date=${new Date().toLocaleDateString("en-GB")}`)
+            .get(`/pas/weekly?date=${getMalaysianDateString()}`)
             .then((res) => {
               dispatch(setWeeklyAchieved({ weekly: res.data.pas }));
-              dispatch(setDailyAchieved({ daily }));
+            })
+            .catch((err) => console.error(err));
+
+          // Fetch yearly data for YTD totals
+          privateApi(token)
+            .get("/pas/annual")
+            .then((res) => {
+              dispatch(setYearlyAchieved({ yearly: res.data.pas }));
             })
             .catch((err) => console.error(err))
             .finally(() => setLoading(false));
@@ -463,6 +489,8 @@ const DailyActivity = ({ navigation }) => {
         .catch((err) => console.error(err));
     }
   };
+
+  console.log("entries?.weekly_achieved", entries?.weekly_achieved);
 
   return (
     <SafeAreaView style={styles.backgroundStyle}>
@@ -533,7 +561,7 @@ const DailyActivity = ({ navigation }) => {
             style={{ flex: 1, justifyContent: "flex-start", marginTop: 30 }}
           >
             <Activity
-              text={"Prospects Contacted"}
+              text={"Prospecting (Call/Direct Approach)"}
               goals={entries?.daily_goals?.p_daily || 0}
               achieved={entries?.daily_achieved?.p_daily || 0}
               status={"P"}
@@ -541,7 +569,7 @@ const DailyActivity = ({ navigation }) => {
               onPress={(value) =>
                 updateAchievements({
                   p_daily: value,
-                  date: new Date().toLocaleDateString("en-GB"),
+                  date: getMalaysianDateString(),
                 })
               }
               navigation={navigation}
@@ -555,7 +583,7 @@ const DailyActivity = ({ navigation }) => {
               onPress={(value) =>
                 updateAchievements({
                   a_daily: value,
-                  date: new Date().toLocaleDateString("en-GB"),
+                  date: getMalaysianDateString(),
                 })
               }
               navigation={navigation}
@@ -569,7 +597,7 @@ const DailyActivity = ({ navigation }) => {
               onPress={(value) =>
                 updateAchievements({
                   pr_daily: value,
-                  date: new Date().toLocaleDateString("en-GB"),
+                  date: getMalaysianDateString(),
                 })
               }
               navigation={navigation}
@@ -589,7 +617,7 @@ const DailyActivity = ({ navigation }) => {
                     {
                       index: value - 1,
                       s_daily: premiumInput,
-                      date: new Date().toLocaleDateString("en-GB"),
+                      date: getMalaysianDateString(),
                     },
                     true
                   );
@@ -597,7 +625,7 @@ const DailyActivity = ({ navigation }) => {
                   updateAchievements(
                     {
                       s_daily: premiumInput,
-                      date: new Date().toLocaleDateString("en-GB"),
+                      date: getMalaysianDateString(),
                     },
                     false
                   );
@@ -605,7 +633,7 @@ const DailyActivity = ({ navigation }) => {
               }}
               color={"#00bf63"}
               totalPremium={
-                entries?.weekly_achieved?.totalPremiumWeekly?.toLocaleString() ||
+                entries?.yearly_achieved?.totalPremiumYearly?.toLocaleString() ||
                 0
               }
             />

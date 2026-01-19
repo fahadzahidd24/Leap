@@ -39,6 +39,7 @@ import Loader from "../components/Loader";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri } from "expo-auth-session";
 import { useFocusEffect } from "@react-navigation/native";
+import { getMalaysianDate } from "../utils/currentDate&Day";
 
 const redirectTo = makeRedirectUri();
 const INITIAL_TIME = { hour: 9, minutes: 0 };
@@ -49,7 +50,7 @@ const TimelineCalendarScreen = ({ route }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(
-    CalendarUtils.getCalendarDateString(new Date())
+    CalendarUtils.getCalendarDateString(getMalaysianDate())
   );
   const [eventsByDate, setEventsByDate] = useState(
     groupBy(events, (e) => CalendarUtils.getCalendarDateString(e.start))
@@ -62,8 +63,8 @@ const TimelineCalendarScreen = ({ route }) => {
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDescription, setNewEventDescription] = useState("");
   const [newEventStatus, setNewEventStatus] = useState("Pending");
-  const [newEventStartTime, setNewEventStartTime] = useState(new Date());
-  const [newEventEndTime, setNewEventEndTime] = useState(new Date());
+  const [newEventStartTime, setNewEventStartTime] = useState(getMalaysianDate());
+  const [newEventEndTime, setNewEventEndTime] = useState(getMalaysianDate());
   const [userAuthorized, setUserAuthorized] = useState(null);
 
   useFocusEffect(

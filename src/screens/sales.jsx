@@ -251,7 +251,7 @@ const Sales = ({ navigation }) => {
               }
             />
             <LeapTextInput
-              label="# of Weeks "
+              label="# of Business Weeks "
               value={Number(formData.numberOfWeeks).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.numberOfWeeksError}
@@ -266,7 +266,7 @@ const Sales = ({ navigation }) => {
                 color: "#e8bf27",
               }}
             >
-              My Success Formula
+              My Weekly Success Formula
             </Text>
 
             <LeapTextInput

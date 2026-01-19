@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.softwarepro.strides",
-      "buildNumber": "1",
+      "buildNumber": "5",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app uses your location to track agents.",
         "NSLocationAlwaysUsageDescription": "This app uses your location to track agents even when the app is in the background.",

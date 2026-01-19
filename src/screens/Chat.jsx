@@ -20,6 +20,7 @@ import { theme } from "../constants/theme";
 import { privateApi } from "../api/axios";
 import Loader from "../components/Loader";
 import { useFocusEffect } from "@react-navigation/native";
+import { getMalaysianDate, TIMEZONE } from "../utils/currentDate&Day";
 
 const Chat = ({ navigation, route }) => {
   const { userId1, userId2, userName2 } = route?.params || {};
@@ -42,12 +43,13 @@ const Chat = ({ navigation, route }) => {
 
         const handleMessageReceive = (newMessage) => {
           if (newMessage?.sender != userId1) {
-            const date = new Date();
+            const date = getMalaysianDate();
             const formattedTime = date
               .toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
                 hour12: true,
+                timeZone: TIMEZONE,
               })
               .toUpperCase();
 
@@ -84,6 +86,7 @@ const Chat = ({ navigation, route }) => {
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: true,
+                  timeZone: TIMEZONE,
                 })
                 .toUpperCase();
               let type = "";
@@ -129,11 +132,12 @@ const Chat = ({ navigation, route }) => {
 
   const sendMessage = () => {
     if (messageText.trim()) {
-      const formattedTime = new Date()
+      const formattedTime = getMalaysianDate()
         .toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
+          timeZone: TIMEZONE,
         })
         .toUpperCase();
 

@@ -21,6 +21,7 @@ import { setWeeklyAchieved } from "../redux/features/entriesSlice";
 import { privateApi } from "../api/axios";
 import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { getMalaysianDateString } from "../utils/currentDate&Day";
 
 const Category = ({ goals, achieved, text, backgroundColor }) => {
   return (
@@ -101,7 +102,7 @@ const Category = ({ goals, achieved, text, backgroundColor }) => {
       </View>
       <View>
         <ProgressBar
-          percentage={Number((achieved / goals) * 100 || 0).toFixed(0)}
+          percentage={(achieved / goals) * 100}
         />
       </View>
     </View>
@@ -119,7 +120,7 @@ const ActivityReports = () => {
     React.useCallback(() => {
       if (token) {
         privateApi(token)
-          .get(`/pas/weekly?date=${new Date().toLocaleDateString("en-GB")}`)
+          .get(`/pas/weekly?date=${getMalaysianDateString()}`)
           .then((res) => {
             dispatch(setWeeklyAchieved({ weekly: res.data.pas }));
           })
@@ -128,6 +129,8 @@ const ActivityReports = () => {
       }
     }, [token])
   );
+
+  console.log("entries?.weekly_goals?.pr_weekly", entries?.weekly_goals)
 
   return (
     <SafeAreaView style={styles.backgroundStyle}>

@@ -24,6 +24,7 @@ import {
 import Loader from "../components/Loader";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useFocusEffect } from "@react-navigation/native";
+import { TIMEZONE } from "../utils/currentDate&Day";
 
 const handleDelete = () => {
   console.log("Deleted");
@@ -196,6 +197,7 @@ const Inbox = ({ navigation }) => {
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: true,
+                  timeZone: TIMEZONE,
                 })
                 .toUpperCase()}
               message={item.lastMessage}

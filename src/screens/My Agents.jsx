@@ -1,8 +1,9 @@
 import {
+  ActivityIndicator,
   FlatList,
-  Platform,
-  Pressable,
+  Modal,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -10,30 +11,23 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
-import { Swipeable } from "react-native-gesture-handler";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { privateApi } from "../api/axios";
 import { theme } from "../constants/theme";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import {
-  EvilIcons,
-  MaterialCommunityIcons,
-  Entypo,
-  MaterialIcons,
-} from "@expo/vector-icons";
 import Loader from "../components/Loader";
 import { useFocusEffect } from "@react-navigation/native";
+import { formatPercentage } from "../utils/formatPercentage";
 
 const MyAgents = ({ navigation }) => {
   const { token, _id } = useSelector((state) => state.User);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  console.log("agents", agents);
-
-  console.log("token", token);
-  console.log("_id", _id);
+  const [displayModal, setDisplayModal] = useState(false);
+  const [agentPAS, setAgentPAS] = useState({});
+  const [agentEntries, setAgentEntries] = useState({});
+  const [selectedAgentName, setSelectedAgentName] = useState("");
+  const [loadingReportId, setLoadingReportId] = useState(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -41,6 +35,7 @@ const MyAgents = ({ navigation }) => {
         privateApi(token)
           .get(`/agents/${_id}`)
           .then((res) => {
+            console.log("Agents data:", res.data.userDetails);
             setAgents(res.data.userDetails);
           })
           .catch((err) => console.error(err))
@@ -49,9 +44,38 @@ const MyAgents = ({ navigation }) => {
     }, [token])
   );
 
-  const AgentComponent = ({ navigation, id, fullName, utcCode }) => {
+  const calculateSalesRatioAchieved = (agentPAS) => {
+    const yearlyAchievedPR = agentPAS?.pr_yearly || 0;
+    const yearlyAchievedS = agentPAS?.s_yearly || 0;
+    return (yearlyAchievedS / yearlyAchievedPR) * 100;
+  };
+
+  const fetchAgentReport = (agentId, agentName) => {
+    setLoadingReportId(agentId);
+    setSelectedAgentName(agentName);
+    
+    // Fetch agent's entries and PAS data (same as Agent Tracking)
+    privateApi(token)
+      .get(`/entries/${agentId}`)
+      .then((res) => {
+        console.log("Agent report data:", res.data);
+        setAgentEntries(res.data?.entries);
+        setAgentPAS(res.data?.pas);
+        setDisplayModal(true);
+      })
+      .catch((err) => {
+        console.error("Error fetching agent report:", err);
+      })
+      .finally(() => {
+        setLoadingReportId(null);
+      });
+  };
+
+  const AgentComponent = ({ id, fullName, utcCode }) => {
+    const isLoading = loadingReportId === id;
+    
     return (
-      <View style={styles.inboxContainer}>
+      <View style={styles.agentContainer}>
         <View style={styles.leftSideView}>
           <View>
             <Text style={styles.userName}>{fullName}</Text>
@@ -59,44 +83,24 @@ const MyAgents = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.rightSideView}>
-          {/* <EvilIcons
-            name="calendar"
-            size={38}
-            color="black"
-            style={{ marginHorizontal: 6 }}
-            onPress={() =>
-              navigation.navigate("DailySchedule1", {
-                userId: id,
-              })
+        <TouchableOpacity
+          style={[styles.reportButton, isLoading && styles.reportButtonLoading]}
+          onPress={() => {
+            if (!isLoading) {
+              fetchAgentReport(id, fullName);
             }
-          /> */}
-
-          {/* <MaterialCommunityIcons
-            onPress={() =>
-              navigation.navigate("DailySchedule1", {
-                userId: id,
-              })
-            }
-            style={{ marginHorizontal: 6 }}
-            name="calendar-month"
-            size={30}
-            color="black"
-          /> */}
-
-          <AntDesign
-            name="message1"
-            size={26}
-            color="black"
-            onPress={() =>
-              navigation.navigate("Chat", {
-                userId1: _id,
-                userId2: id,
-                userName2: fullName,
-              })
-            }
-          />
-        </View>
+          }}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <>
+              <Ionicons name="stats-chart" size={16} color="white" />
+              <Text style={styles.reportButtonText}>Report</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     );
   };
@@ -152,20 +156,138 @@ const MyAgents = ({ navigation }) => {
         </View> */}
       </View>
 
-      <View style={styles.inboxContainerTop}>
+      <View style={styles.listContainer}>
         <FlatList
           data={agents}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <AgentComponent
-              navigation={navigation}
-              id={item.id}
+              id={item.id || item._id}
               fullName={item.fullName}
               utcCode={item.utcCode}
             />
           )}
         />
       </View>
+
+      {/* Agent Performance Report Modal */}
+      <Modal animationType="slide" transparent={true} visible={displayModal}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>
+                {selectedAgentName}'s Annual Performance
+              </Text>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>YTD Progress</Text>
+                <View style={styles.row}>
+                  <Text style={styles.label}>YTD P:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.p_yearly /
+                        (agentPAS?.total_days *
+                          agentEntries?.daily_goals?.p_daily)) *
+                        100
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>YTD A:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.a_yearly /
+                        (agentPAS?.total_days *
+                          agentEntries?.daily_goals?.a_daily)) *
+                        100
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>YTD PR:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.pr_yearly /
+                        (agentPAS?.total_days *
+                          agentEntries?.daily_goals?.pr_daily)) *
+                        100
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>YTD S:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.s_yearly /
+                        (agentPAS?.total_days *
+                          agentEntries?.daily_goals?.s_daily)) *
+                        100
+                    )}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Ratios</Text>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Appointments Ratio:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.a_yearly / agentPAS?.p_yearly) * 100
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Presentations Ratio:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.pr_yearly / agentPAS?.a_yearly) * 100
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Sales Ratio:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(calculateSalesRatioAchieved(agentPAS))}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Financials</Text>
+                <View style={styles.row}>
+                  <Text style={styles.label}>YTD Premium:</Text>
+                  <Text style={styles.value}>
+                    RM {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Progress:</Text>
+                  <Text style={styles.value}>
+                    {formatPercentage(
+                      (agentPAS?.totalPremiumYearly /
+                        agentEntries?.SalesTargets?.salesTargets) *
+                        100
+                    )}
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setDisplayModal(false);
+                setAgentEntries({});
+                setAgentPAS({});
+              }}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {loading && <Loader />}
     </SafeAreaView>
   );
@@ -183,29 +305,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: "center",
   },
-  goBack: {
-    marginLeft: 20,
-    alignItems: "flex-start",
-    // marginTop: Platform.OS === "android" ? Constants.statusBarHeight : 0,
-  },
-  inboxText: {
-    fontSize: 24,
-    marginLeft: 20,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  inboxContainerTop: {
+  listContainer: {
     width: "90%",
-    alignItems: "flex-end",
     marginTop: 15,
+    flex: 1,
   },
-  inboxContainer: {
+  agentContainer: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#fff",
-    padding: 8,
+    padding: 12,
     borderRadius: 10,
     marginBottom: 13,
     elevation: 2,
@@ -220,40 +331,93 @@ const styles = StyleSheet.create({
   leftSideView: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  rightSideView: {
-    justifyContent: "center",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    marginRight: 15,
+    flex: 1,
   },
   userName: {
-    fontSize: 14,
-    // fontFamily: "SFPro-700",
+    fontSize: 15,
+    fontWeight: "600",
   },
   message: {
-    fontSize: 14,
-    // fontFamily: "SFPro-400",
-    // color: "#3C3C3C",
+    fontSize: 13,
     color: "gray",
+    marginTop: 2,
   },
-  time: {
-    fontSize: 12,
-    color: "gray",
-    // fontFamily: "SFPro-400",
+  reportButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.background,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    minWidth: 85,
   },
-  deleteButton: {
-    backgroundColor: "#C64B31",
+  reportButtonLoading: {
+    opacity: 0.8,
+  },
+  reportButtonText: {
+    color: "white",
+    fontSize: 13,
+    fontWeight: "600",
+    marginLeft: 5,
+  },
+  // Modal styles
+  centeredView: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    width: 50,
-    height: "85%",
-    marginRight: 15,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalView: {
+    backgroundColor: "white",
     borderRadius: 10,
+    padding: 20,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  section: {
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 5,
+    color: theme.colors.background,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 3,
+  },
+  label: {
+    fontSize: 14,
+    color: "#555",
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  closeButton: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+    marginTop: 15,
+  },
+  closeButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

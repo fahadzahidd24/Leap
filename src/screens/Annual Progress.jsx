@@ -16,6 +16,7 @@ import Loader from "../components/Loader";
 import { setYearlyAchieved } from "../redux/features/entriesSlice";
 import { privateApi } from "../api/axios";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { formatPercentage } from "../utils/formatPercentage";
 
 const AnnualProgress = () => {
   const entries = useSelector((state) => state.Entries);
@@ -213,12 +214,11 @@ const AnnualProgress = () => {
                   textAlign: "center",
                 }}
               >
-                {(
+                {formatPercentage(
                   (entries?.yearly_achieved?.totalPremiumYearly /
                     entries?.SalesTargets?.salesTargets) *
-                    100 || 0
-                ).toFixed(0)}
-                %
+                    100
+                )}
               </Text>
               <Text
                 style={{
@@ -314,12 +314,12 @@ const AnnualProgress = () => {
                 P
               </Text>
               <ProgressBar
-                percentage={(
+                percentage={
                   (entries?.yearly_achieved?.p_yearly /
                     (entries?.yearly_achieved?.total_days *
                       entries?.daily_goals?.p_daily)) *
-                    100 || 0
-                ).toFixed(0)}
+                    100
+                }
                 sx={"small"}
               />
             </View>
@@ -336,12 +336,12 @@ const AnnualProgress = () => {
                 A
               </Text>
               <ProgressBar
-                percentage={(
+                percentage={
                   (entries?.yearly_achieved?.a_yearly /
                     (entries?.yearly_achieved?.total_days *
                       entries?.daily_goals?.a_daily)) *
-                    100 || 0
-                ).toFixed(0)}
+                    100
+                }
                 sx={"small"}
               />
             </View>
@@ -358,12 +358,12 @@ const AnnualProgress = () => {
                 P
               </Text>
               <ProgressBar
-                percentage={(
+                percentage={
                   (entries?.yearly_achieved?.pr_yearly /
                     (entries?.yearly_achieved?.total_days *
                       entries?.daily_goals?.pr_daily)) *
-                    100 || 0
-                ).toFixed(0)}
+                    100
+                }
                 sx={"small"}
               />
             </View>
@@ -380,12 +380,12 @@ const AnnualProgress = () => {
                 S
               </Text>
               <ProgressBar
-                percentage={(
+                percentage={
                   (entries?.yearly_achieved?.s_yearly /
                     (entries?.yearly_achieved?.total_days *
                       entries?.daily_goals?.s_daily)) *
-                    100 || 0
-                ).toFixed(0)}
+                    100
+                }
                 sx={"small"}
               />
             </View>

@@ -10,9 +10,35 @@ const ProgressBar = ({ percentage, sx }) => {
   const circumference = radius * 2 * Math.PI;
   const halfCircle = size / 2;
 
+  // Handle percentage display following the rules:
+  // If Target = 0 and Actual > 0 → "100%+" (Infinity)
+  // If Target = 0 and Actual = 0 → "—%" (NaN)
+  // If Target > 0 → Display Actual ÷ Target
+  const numPercentage = Number(percentage);
+  
+  let displayPercentage;
+  let visualPercentage;
+  
+  if (isNaN(numPercentage)) {
+    // Target = 0, Actual = 0 → display —%
+    displayPercentage = "—%";
+    visualPercentage = 0;
+  } else if (!isFinite(numPercentage)) {
+    // Target = 0, Actual > 0 → display 100%+
+    displayPercentage = "100%+";
+    visualPercentage = 100;
+  } else if (numPercentage > 100) {
+    // Over 100 - show actual percentage with ceil
+    displayPercentage = `${Math.ceil(numPercentage)}%`;
+    visualPercentage = 100;
+  } else {
+    // Normal case - show rounded percentage
+    displayPercentage = `${Math.round(numPercentage)}%`;
+    visualPercentage = Math.max(0, numPercentage);
+  }
+
   const strokeDashoffset =
-    circumference -
-    (circumference * (percentage > 100 ? 100 : percentage)) / 100;
+    circumference - (circumference * visualPercentage) / 100;
 
   return (
     <View
@@ -55,7 +81,7 @@ const ProgressBar = ({ percentage, sx }) => {
           />
         </G>
       </Svg>
-      <Text style={styles.percentageText}>{`${percentage}%`}</Text>
+      <Text style={styles.percentageText}>{displayPercentage}</Text>
     </View>
   );
 };
@@ -70,6 +96,7 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   percentageText: {
+    textAlign:"center",
     fontSize: 12,
     fontWeight: "bold",
     color: "white",
