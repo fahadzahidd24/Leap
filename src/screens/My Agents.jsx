@@ -54,7 +54,7 @@ const MyAgents = ({ navigation }) => {
     setLoadingReportId(agentId);
     setSelectedAgentName(agentName);
     
-    // Fetch agent's entries and PAS data (same as Agent Tracking)
+    // Fetch agent's entries and PAS data
     privateApi(token)
       .get(`/entries/${agentId}`)
       .then((res) => {

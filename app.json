@@ -17,12 +17,7 @@
       "bundleIdentifier": "com.softwarepro.strides",
       "buildNumber": "5",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app uses your location to track agents.",
-        "NSLocationAlwaysUsageDescription": "This app uses your location to track agents even when the app is in the background.",
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "config": {
-        "googleMapsApiKey": "AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU"
       },
       "appleTeamId": "F73ZDW26LC"
     },
@@ -31,15 +26,6 @@
         "foregroundImage": "./assets/appIcon.png",
         "backgroundColor": "#3971c2"
       },
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAX8on5MK8yYdmAYr5FQG3YVcGmUFmEyvU"
-        }
-      },
-      "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ],
       "package": "com.softwarepro.strides"
     },
     "web": {
@@ -47,12 +33,6 @@
     },
     "plugins": [
       "expo-font",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
-        }
-      ],
       "expo-video"
     ],
     "extra": {

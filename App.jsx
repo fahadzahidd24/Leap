@@ -10,48 +10,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppStack from "./src/navigation/AppStack";
 import AuthStack from "./src/navigation/AuthStack";
 import { logoutUser, setUser } from "./src/redux/features/userSlice";
-import * as Location from "expo-location";
 import { store } from "./src/redux/store";
-import useSocket from "./src/hooks/useSocket";
 import { LogBox } from 'react-native';
-import {
-  resetCurrentCoordinates,
-  setCurrentCoordinates,
-} from "./src/redux/features/locationSlice";
 import { privateApi } from "./src/api/axios";
 import { resetEntries, setEntries } from "./src/redux/features/entriesSlice";
-import { debounce } from "lodash";
 import * as Linking from "expo-linking";
 import { resetChat } from "./src/redux/features/chatSlice";
 LogBox.ignoreAllLogs();
-// Define the function to send the agent location
-const sendAgentLocation = async (latitude, longitude, user) => {
-  try {
-    if (!user) {
-      return;
-    }
-    const response = await privateApi(user?.token).post("/location", {
-      latitude,
-      longitude,
-      agentId: user?._id,
-      agentName: user?.fullName,
-      companyName: user?.companyName,
-      profilePic: user?.profilePic,
-    });
-  } catch (error) {
-    console.error("Failed to send location:", error);
-  }
-};
-
-// Debounce the function with a 2-second delay
-const debouncedSendAgentLocation = debounce(sendAgentLocation, 10000);
 
 function StartUp() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const user = useSelector((state) => state.User);
   const [loading, setLoading] = useState(true);
-  const { sendEvent, socket } = useSocket();
 
   const loadUser = useCallback(async () => {
     try {
@@ -60,6 +31,20 @@ function StartUp() {
       if (storedUserString) {
         const parsedUser = JSON.parse(storedUserString);
         dispatch(setUser({ user: parsedUser }));
+        
+        // Fetch fresh user data from server
+        if (parsedUser?.token) {
+          try {
+            const res = await privateApi(parsedUser.token).get("/profile");
+            if (res.data?.user) {
+              // Merge server data with stored token
+              const updatedUser = { ...res.data.user, token: parsedUser.token };
+              dispatch(setUser({ user: updatedUser }));
+            }
+          } catch (profileError) {
+            console.error("Error fetching user profile:", profileError);
+          }
+        }
       }
     } catch (error) {
       console.error("Error loading user from AsyncStorage:", error);
@@ -86,7 +71,6 @@ function StartUp() {
                 text: "OK",
                 onPress: () => {
                   dispatch(logoutUser());
-                  dispatch(resetCurrentCoordinates());
                   dispatch(resetEntries());
                   dispatch(resetChat());
                 },
@@ -109,58 +93,6 @@ function StartUp() {
   useEffect(() => {
     loadUser();
   }, []);
-
-  useEffect(() => {
-    const startLocationUpdates = async () => {
-      try {
-        const { status } = await Location.requestBackgroundPermissionsAsync();
-        const { status: status1 } =
-          await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted" || status1 !== "granted") {
-          console.log("Permission to access location was denied");
-          // ask for permission
-          // Alert.alert("Location Permission Denied", "Permission to access location was denied. Please go to settings > apps > LEAP and enable location access.");
-          return;
-        }
-
-        const subscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.BestForNavigation,
-            timeInterval: 20000,
-          },
-          (location) => {
-            const { latitude, longitude } = location.coords;
-
-            if (user?.token && user?.role === "agent") {
-              debouncedSendAgentLocation(latitude, longitude, user);
-
-              sendEvent("agentLocation", {
-                latitude,
-                longitude,
-                agentId: user?._id,
-                agentName: user?.fullName,
-                companyName: user?.companyName,
-                profilePic: user?.profilePic,
-              });
-            }
-            dispatch(setCurrentCoordinates({ latitude, longitude }));
-          }
-        );
-
-        return () => {
-          subscription?.remove();
-        };
-      } catch (error) {
-        console.error("Error starting location updates:", error);
-      }
-    };
-
-    if (socket && user?.companyName) {
-      sendEvent("joinCompanyRoom", user?.companyName);
-
-      startLocationUpdates();
-    }
-  }, [socket, user, dispatch]);
 
   useEffect(() => {
     const handleDeepLink = (event) => {

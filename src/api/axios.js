@@ -2,7 +2,6 @@ import axios from "axios";
 import { store } from "../redux/store";
 import { logoutUser } from "../redux/features/userSlice";
 import { Alert } from "react-native";
-import { resetCurrentCoordinates } from "../redux/features/locationSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
 
@@ -42,7 +41,6 @@ const privateApi = (token) => {
               text: "OK",
               onPress: () => {
                 store.dispatch(logoutUser());
-                store.dispatch(resetCurrentCoordinates());
                 store.dispatch(resetEntries());
                 store.dispatch(resetChat());
               },

@@ -21,13 +21,21 @@ export const userSlice = createSlice({
       logout();
       return null;
     },
-    setProfession: (state,action) => {
+    setProfession: (state, action) => {
       const profession = action.payload.profession;
-      state.profession = profession
-    }
+      state.profession = profession;
+    },
+    updateUserProfile: (state, action) => {
+      const updatedUser = { ...state, ...action.payload };
+      async function write() {
+        await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+      write();
+      return updatedUser;
+    },
   },
 });
 
-export const { setUser, logoutUser, setProfession } = userSlice.actions;
+export const { setUser, logoutUser, setProfession, updateUserProfile } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -16,7 +16,6 @@ import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Sales from "../screens/sales";
-import AgentTracking from "../screens/Agent Tracking";
 import { theme } from "../constants/theme";
 import { TouchableOpacity, View, Text, StyleSheet, Image, Platform } from "react-native";
 import DailyActivity from "../screens/Daily Activity";
@@ -27,7 +26,6 @@ import Octicons from "@expo/vector-icons/Octicons";
 import DailySchedule from "../screens/Daily Schedule";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MyAgents from "../screens/My Agents";
-import { resetCurrentCoordinates } from "../redux/features/locationSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
 import ChatCoach from "../screens/AskMyCoach/ChatCoach";
@@ -39,6 +37,7 @@ import Profession from "../screens/AskMyCoach/Profession";
 import { LinearGradient } from "expo-linear-gradient";
 import VideoPlayer from "../screens/VideoPlayer";
 import Masterclass from "../screens/Masterclass";
+import Profile from "../screens/Profile";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -65,6 +64,7 @@ const getIconForRoute = (routeName) => {
     "My Agents": { component: Feather, name: "users" },
     Profession: { component: Feather, name: "briefcase" },
     ChatCoach: { component: Ionicons, name: "chatbubbles-outline" },
+    Profile: { component: Feather, name: "user" },
   };
   return icons[routeName] || { component: Feather, name: "circle" };
 };
@@ -432,7 +432,6 @@ const DrawerNav = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
-    dispatch(resetCurrentCoordinates());
     dispatch(resetEntries());
     dispatch(resetChat());
   };
@@ -441,6 +440,7 @@ const DrawerNav = () => {
     { name: "Home", label: "Home" },
     { name: "tabs", label: "Overview" },
     { name: "Sales", label: "Sales Targets" },
+    { name: "Profile", label: "Profile" },
   ];
 
   return (
@@ -502,6 +502,14 @@ const DrawerNav = () => {
           title: "",
         }}
       />
+      <Drawer.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          drawerLabel: "Profile",
+          title: "",
+        }}
+      />
     </Drawer.Navigator>
   );
 };
@@ -513,13 +521,13 @@ const ManagerDrawerNav = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
-    dispatch(resetCurrentCoordinates());
     dispatch(resetEntries());
     dispatch(resetChat());
   };
 
   const managerRoutes = [
     { name: "My Agents", label: "My Agents" },
+    { name: "Profile", label: "Profile" },
   ];
 
   return (
@@ -564,6 +572,14 @@ const ManagerDrawerNav = () => {
           drawerLabel: "My Agents",
         }}
       />
+      <Drawer.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          drawerLabel: "Profile",
+          title: "",
+        }}
+      />
     </Drawer.Navigator>
   );
 };
@@ -575,7 +591,6 @@ const CoachDrawer = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
-    dispatch(resetCurrentCoordinates());
     dispatch(resetEntries());
     dispatch(resetChat());
   };
