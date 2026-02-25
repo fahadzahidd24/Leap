@@ -1,10 +1,10 @@
 import "react-native-gesture-handler";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { Provider } from "react-redux";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
-import { View, Text, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ActivityIndicator, Alert, Platform } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppStack from "./src/navigation/AppStack";
@@ -16,6 +16,7 @@ import { privateApi } from "./src/api/axios";
 import { resetEntries, setEntries } from "./src/redux/features/entriesSlice";
 import * as Linking from "expo-linking";
 import { resetChat } from "./src/redux/features/chatSlice";
+import { requestTrackingPermissionsAsync, getTrackingPermissionsAsync } from "expo-tracking-transparency";
 LogBox.ignoreAllLogs();
 
 function StartUp() {
@@ -23,6 +24,7 @@ function StartUp() {
   const navigation = useNavigation();
   const user = useSelector((state) => state.User);
   const [loading, setLoading] = useState(true);
+  const appOpenTrackedRef = useRef(false);
 
   const loadUser = useCallback(async () => {
     try {
@@ -93,6 +95,51 @@ function StartUp() {
   useEffect(() => {
     loadUser();
   }, []);
+
+  // Track app open when user is logged in (on app start or after login)
+  useEffect(() => {
+    if (user?.token && !appOpenTrackedRef.current) {
+      appOpenTrackedRef.current = true;
+      privateApi(user.token)
+        .post("/tracking/app-open")
+        .catch((err) => console.error("App-open tracking error:", err));
+    }
+  }, [user?.token]);
+
+  // Request App Tracking Transparency permission on iOS
+  useEffect(() => {
+    if (Platform.OS !== "ios" || loading) {
+      return;
+    }
+
+    const requestTrackingPermission = async () => {
+      try {
+        // Check the current status first
+        const { status: currentStatus } = await getTrackingPermissionsAsync();
+        console.log("Current tracking permission status:", currentStatus);
+        
+        // Only request if status is undetermined (not yet asked)
+        if (currentStatus === "undetermined") {
+          // Wait a bit for the app to be fully ready before showing the prompt
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          try {
+            const { status } = await requestTrackingPermissionsAsync();
+            console.log("Tracking permission requested, new status:", status);
+          } catch (error) {
+            console.error("Error requesting tracking permission:", error);
+          }
+        } else {
+          console.log("Tracking permission already determined:", currentStatus);
+        }
+      } catch (error) {
+        console.error("Error checking/requesting tracking permission:", error);
+      }
+    };
+
+    // Request after app is loaded
+    requestTrackingPermission();
+  }, [loading]);
 
   useEffect(() => {
     const handleDeepLink = (event) => {

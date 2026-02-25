@@ -180,7 +180,7 @@ const MyAgents = ({ navigation }) => {
               </Text>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>YTD Progress</Text>
+                <Text style={styles.sectionTitle}>YTD Activity Progress</Text>
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD P:</Text>
                   <Text style={styles.value}>
@@ -204,7 +204,7 @@ const MyAgents = ({ navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>YTD PR:</Text>
+                  <Text style={styles.label}>YTD P:</Text>
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.pr_yearly /
@@ -228,7 +228,7 @@ const MyAgents = ({ navigation }) => {
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Ratios</Text>
+                <Text style={styles.sectionTitle}>Sales Effectiveness Ratios</Text>
                 <View style={styles.row}>
                   <Text style={styles.label}>Appointments Ratio:</Text>
                   <Text style={styles.value}>
@@ -254,9 +254,9 @@ const MyAgents = ({ navigation }) => {
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Financials</Text>
+                <Text style={styles.sectionTitle}>Annual Progress</Text>
                 <View style={styles.row}>
-                  <Text style={styles.label}>YTD Premium:</Text>
+                  <Text style={styles.label}>YTD Sales:</Text>
                   <Text style={styles.value}>
                     RM {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
                   </Text>

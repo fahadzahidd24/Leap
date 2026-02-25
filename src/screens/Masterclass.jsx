@@ -16,30 +16,63 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 const videos = [
   {
     key: "P",
-    title: "Pre-Approach",
-    subtitle: "Prospecting (Call/Direct Approach)",
-    description: "Learn effective techniques for reaching out to prospects and making first contact.",
+    title: "Prospecting",
+    subtitle: "Asking for Referrals",
+    description: "Strengthen your client base by applying structured referral strategies that turn satisfied clients into consistent sources of new prospects.",
     color: "#ff5757",
     icon: "account-search",
-    thumbnail: require("../../assets/pre-approach-thumbnail.png"),
+    vimeoId: "1156226951",
+    vimeoHash: "0b48741c06",
+    isPAPS: true,
+    thumbnail: require("../../assets/1-video.png"),
   },
   {
     key: "A",
-    title: "Approach",
-    subtitle: "Appointment Secured",
-    description: "Master the art of securing appointments and building initial rapport.",
+    title: "Pre-Approach",
+    subtitle: "Securing Appointments",
+    description: "Sharpen your approach to secure appointment by applying proven techniques that help you initiate confident, effective first contact with potential clients.",
     color: "#ffca08",
     icon: "calendar-check",
-    thumbnail: require("../../assets/approach-thumbnail.png"),
+    vimeoId: "1156229686",
+    vimeoHash: "2dce48b091",
+    isPAPS: true,
+    thumbnail: require("../../assets/2-video.png"),
+  },
+  {
+    key: "FF",
+    title: "Fact Findings",
+    subtitle: "Asking Right Questions to Understand Your Client",
+    description: "Uncover financial needs, priorities, and long-term goals of your client through effective Situation-Shocking-Action (SSA) questioning techniques.",
+    color: "#5271ff",
+    icon: "clipboard-text-search",
+    vimeoId: "1156229245",
+    vimeoHash: "d252ecc674",
+    isPAPS: false,
+    thumbnail: require("../../assets/3-video.png"),
+  },
+  {
+    key: "PR",
+    title: "Presentation",
+    subtitle: "Concept Presentation & Time Value of Money (TVM) Calculation",
+    description: "Apply concept selling and TVM calculation to build client confidence in decision making.",
+    color: "#7c3aed",
+    icon: "presentation",
+    vimeoId: "1156227824",
+    vimeoHash: "cb64183cdc",
+    isPAPS: true,
+    thumbnail: require("../../assets/4-video.png"),
   },
   {
     key: "S",
-    title: "Closing",
-    subtitle: "Sales Closed",
-    description: "Discover proven closing techniques to seal the deal confidently.",
+    title: "Handling Concerns",
+    subtitle: "Closing the Deal",
+    description: "Apply a structured four-step approach to address client concerns with confidence and move conversations decisively toward commitment.",
     color: "#00bf63",
     icon: "handshake",
-    thumbnail: require("../../assets/sales-thumbnail.png"),
+    vimeoId: "1156226644",
+    vimeoHash: "60809c905c",
+    isPAPS: true,
+    thumbnail: require("../../assets/5-video.png"),
   },
 ];
 
@@ -83,7 +116,13 @@ const Masterclass = ({ navigation }) => {
   const handleVideoPress = (video) => {
     navigation.navigate("VideoPlayer", {
       videoKey: video.key,
-      title: `${video.title} - ${video.subtitle}`,
+      title: video.title,
+      subtitle: video.subtitle,
+      description: video.description,
+      vimeoId: video.vimeoId,
+      vimeoHash: video.vimeoHash,
+      color: video.color,
+      thumbnail: video.thumbnail,
     });
   };
 
@@ -215,8 +254,9 @@ const styles = StyleSheet.create({
   },
   thumbnailContainer: {
     position: "relative",
-    height: 160,
+    height: 180,
     width: "100%",
+    backgroundColor: "#1a1a2e",
   },
   thumbnail: {
     width: "100%",
@@ -289,4 +329,3 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
-

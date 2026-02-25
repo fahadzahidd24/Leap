@@ -2,7 +2,7 @@
   "expo": {
     "name": "Strides",
     "slug": "Strides",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "strides",
     "icon": "./assets/appIcon.png",
@@ -15,9 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.softwarepro.strides",
-      "buildNumber": "5",
+      "buildNumber": "13",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized content and improve your app experience."
       },
       "appleTeamId": "F73ZDW26LC"
     },
@@ -26,20 +27,35 @@
         "foregroundImage": "./assets/appIcon.png",
         "backgroundColor": "#3971c2"
       },
-      "package": "com.softwarepro.strides"
+      "package": "com.softwarepro.strides",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "com.google.android.gms.permission.AD_ID"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font",
-      "expo-video"
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you upload your profile picture."
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This identifier will be used to deliver personalized content and improve your app experience."
+        }
+      ]
     ],
     "extra": {
       "eas": {
-        "projectId": "91bfd0ea-c748-4c90-b1d9-79b2cbbac241"
+        "projectId": "28f65478-fef2-492a-b23c-b2e2d44be5c7"
       }
     },
-    "owner": "fahadzahidd24"
+    "owner": "goaler1"
   }
 }

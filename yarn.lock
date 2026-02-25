@@ -3418,15 +3418,15 @@ expo-status-bar@~2.0.1:
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-2.0.1.tgz"
   integrity sha512-AkIPX7jWHRPp83UBZ1iXtVvyr0g+DgBVvIXTtlmPtmUsm8Vq9Bb5IGj86PW8osuFlgoTVAg7HI/+Ok7yEYwiRg==
 
+expo-tracking-transparency@~5.1.1:
+  version "5.1.1"
+  resolved "https://registry.npmjs.org/expo-tracking-transparency/-/expo-tracking-transparency-5.1.1.tgz"
+  integrity sha512-fiT079Wf5YOPIqc2osTuPrQsOn4+5kXMRQmjUqe3z5PdeCF8nqJg5qrOLP1vaG5Cq8J8ws3Q2Sc7q4kR2G0yTw==
+
 expo-updates-interface@~1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/expo-updates-interface/-/expo-updates-interface-1.0.0.tgz"
   integrity sha512-93oWtvULJOj+Pp+N/lpTcFfuREX1wNeHtp7Lwn8EbzYYmdn37MvZU3TPW2tYYCZuhzmKEXnUblYcruYoDu7IrQ==
-
-expo-video@~2.0.6:
-  version "2.0.6"
-  resolved "https://registry.npmjs.org/expo-video/-/expo-video-2.0.6.tgz"
-  integrity sha512-oDorKwjreHT596oY6ZfktbDa3VF+Sq7gVsTbnQ4QVqGYL13mIO0s+h4y9xMyG/cDWyFpiRc4UT8KkPdxL0wViQ==
 
 expo-web-browser@~14.0.2:
   version "14.0.2"
@@ -4001,7 +4001,7 @@ internal-ip@^4.3.0:
     default-gateway "^4.2.0"
     ipaddr.js "^1.9.0"
 
-invariant@^2.2.4:
+invariant@^2.2.4, invariant@2.2.4:
   version "2.2.4"
   resolved "https://registry.npmjs.org/invariant/-/invariant-2.2.4.tgz"
   integrity sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==
@@ -5469,6 +5469,14 @@ react-native-vector-icons@*:
   dependencies:
     prop-types "^15.7.2"
     yargs "^16.1.1"
+
+react-native-webview@*, react-native-webview@13.12.5:
+  version "13.12.5"
+  resolved "https://registry.npmjs.org/react-native-webview/-/react-native-webview-13.12.5.tgz"
+  integrity sha512-INOKPom4dFyzkbxbkuQNfeRG9/iYnyRDzrDkJeyvSWgJAW2IDdJkWFJBS2v0RxIL4gqLgHkiIZDOfiLaNnw83Q==
+  dependencies:
+    escape-string-regexp "^4.0.0"
+    invariant "2.2.4"
 
 react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", "react-native@>= 0.30.0", react-native@>=0.57, react-native@0.76.9:
   version "0.76.9"

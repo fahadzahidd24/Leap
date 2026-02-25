@@ -31,11 +31,40 @@ import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { calcPercentage } from "../utils/formatPercentage";
 
-const videoTitles = {
-  P: "Pre-Approach - Prospecting (Call/Direct Approach)",
-  A: "Approach - Appointment Secured",
-  PR: "Presentation - Presentations Made",
-  S: "Closing - Sales Closed",
+// Video data for PAPS - matches Masterclass videos
+const videoData = {
+  P: {
+    title: "Prospecting",
+    subtitle: "Asking for Referrals",
+    description: "Strengthen your client base by applying structured referral strategies that turn satisfied clients into consistent sources of new prospects.",
+    vimeoId: "1156226951",
+    vimeoHash: "0b48741c06",
+    color: "#ff5757",
+  },
+  A: {
+    title: "Pre-Approach",
+    subtitle: "Securing Appointments",
+    description: "Sharpen your approach to secure appointment by applying proven techniques that help you initiate confident, effective first contact with potential clients.",
+    vimeoId: "1156229686",
+    vimeoHash: "2dce48b091",
+    color: "#ffca08",
+  },
+  PR: {
+    title: "Presentation",
+    subtitle: "Concept Presentation & Time Value of Money (TVM) Calculation",
+    description: "Apply concept selling and TVM calculation to build client confidence in decision making.",
+    vimeoId: "1156227824",
+    vimeoHash: "cb64183cdc",
+    color: "#7c3aed",
+  },
+  S: {
+    title: "Handling Concerns",
+    subtitle: "Closing the Deal",
+    description: "Apply a structured four-step approach to address client concerns with confidence and move conversations decisively toward commitment.",
+    vimeoId: "1156226644",
+    vimeoHash: "60809c905c",
+    color: "#00bf63",
+  },
 };
 
 const Activity = ({
@@ -59,15 +88,21 @@ const Activity = ({
   const isSubmittingRef = useRef(false);
   const rootNavigation = useNavigation();
 
-  const data = Array.from({ length: 50 }, (_, index) => index);
+  const data = Array.from({ length: 50 }, (_, index) => index + 1);
 
   const handleVideoPress = () => {
-    // Map status to video key (PR uses same video as P)
-    const videoKey = status === "PR" ? "PR" : status;
-    rootNavigation.navigate("VideoPlayer", {
-      videoKey: videoKey,
-      title: videoTitles[videoKey] || videoTitles[status],
-    });
+    const video = videoData[status];
+    if (video) {
+      rootNavigation.navigate("VideoPlayer", {
+        videoKey: status,
+        title: video.title,
+        subtitle: video.subtitle,
+        description: video.description,
+        vimeoId: video.vimeoId,
+        vimeoHash: video.vimeoHash,
+        color: video.color,
+      });
+    }
   };
 
   const renderItem = ({ item, index }) => {

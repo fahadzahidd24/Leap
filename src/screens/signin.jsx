@@ -2,12 +2,14 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useState } from "react";
@@ -18,6 +20,9 @@ import { publicApi } from "../api/axios.js";
 import { useDispatch } from "react-redux";
 import { setProfession, setUser } from "../redux/features/userSlice.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const PRIVACY_POLICY_URL = "https://gitsagroup.com/strides-privacy-policy/";
+const TERMS_OF_USE_URL = "https://gitsagroup.com/terms-of-use/";
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -167,7 +172,7 @@ const SignIn = ({ navigation }) => {
               Sign In
             </Button>
 
-            <Text
+            {/* <Text
               onPress={() => navigation.navigate("signup")}
               style={{
                 textAlign: "left",
@@ -177,8 +182,22 @@ const SignIn = ({ navigation }) => {
                 color: theme.colors.secondary,
               }}
             >
-              Don’t have an account? Sign Up
-            </Text>
+              Don't have an account? Sign Up
+            </Text>/ */}
+
+            {/* Privacy Policy & Terms of Use Links */}
+            <View style={styles.legalLinksContainer}>
+              <Text style={styles.legalText}>By signing in, you agree to our</Text>
+              <View style={styles.legalLinksRow}>
+                <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </TouchableOpacity>
+                <Text style={styles.legalText}> & </Text>
+                <TouchableOpacity onPress={() => Linking.openURL(TERMS_OF_USE_URL)}>
+                  <Text style={styles.legalLink}>Terms of Use</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -201,5 +220,23 @@ const styles = StyleSheet.create({
   },
   scrollViewStyle: {
     padding: 25,
+  },
+  legalLinksContainer: {
+    marginTop: 30,
+    alignItems: "center",
+  },
+  legalLinksRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  legalText: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.6)",
+  },
+  legalLink: {
+    fontSize: 13,
+    color: "#ff914d",
+    textDecorationLine: "underline",
   },
 });
