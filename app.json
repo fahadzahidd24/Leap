@@ -2,7 +2,7 @@
   "expo": {
     "name": "Strides",
     "slug": "Strides",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "scheme": "strides",
     "icon": "./assets/appIcon.png",
@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.softwarepro.strides",
-      "buildNumber": "13",
+      "buildNumber": "14",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized content and improve your app experience."
@@ -53,9 +53,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "28f65478-fef2-492a-b23c-b2e2d44be5c7"
+        "projectId": "91bfd0ea-c748-4c90-b1d9-79b2cbbac241"
       }
     },
-    "owner": "goaler1"
+    "owner": "fahadzahidd24"
   }
 }
