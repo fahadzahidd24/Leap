@@ -166,8 +166,7 @@ const Profile = ({ navigation }) => {
           <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           {/* <Text style={styles.userEmail}>{user?.email || ""}</Text> */}
           <Text style={styles.userRole}>
-            {/* if role is manager show leader else show role */}
-            {user?.role === "manager" ? "Leader" : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"}
+            {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"}
             {/* {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"} */}
           </Text>
         </View>
