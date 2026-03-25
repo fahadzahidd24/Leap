@@ -170,7 +170,7 @@ const Home = ({ navigation }) => {
               color: theme.colors.secondary,
             }}
           >
-            ({user?.utcCode})
+            ({user?.email})
           </Text> */}
 
           <View style={{ marginTop: 30 }}>

@@ -25,18 +25,18 @@ import { pickImageFromGallery } from "../utils/pickImageFromGallery.js";
 const SignUp = ({ navigation }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    // email: "",
     password: "",
     name: "",
     role: "",
     companyName: "",
-    utcCode: "",
+    email: "",
   });
   const [image, setImage] = useState(null);
   const [pickedImage, setPickedImage] = useState(null);
   const [imageError, setImageError] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -49,12 +49,11 @@ const SignUp = ({ navigation }) => {
     if (!formData.name.trim()) errors.name = true;
     if (!formData.role) errors.role = true;
     if (!formData.companyName.trim()) errors.companyName = true;
-    // if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
-    //   errors.email = true;
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
     if (!formData.password.trim() || !passwordRegex.test(formData.password))
       errors.password = true;
-    if(!formData.utcCode) errors.utcCode = true;
+    if (!formData.email.trim() || !emailRegex.test(formData.email.trim().toLowerCase()))
+      errors.email = true;
     
     setFormErrors(errors);
     
@@ -75,12 +74,11 @@ const SignUp = ({ navigation }) => {
       // Create a new FormData instance
       const formData1 = new FormData();
 
-      // formData1.append("email", formData.email);
       formData1.append("password", formData.password);
       formData1.append("fullName", formData.name);
       formData1.append("role", formData.role);
       formData1.append("companyName", formData.companyName);
-      formData1.append("utcCode", formData.utcCode);
+      formData1.append("email", formData.email.trim().toLowerCase());
       formData1.append("profilePic", image);
 
       // Make the POST request with multipart/form-data content type
@@ -184,21 +182,14 @@ const SignUp = ({ navigation }) => {
               onChangeText={(text) => handleInputChange("companyName", text)}
               isError={formErrors.companyName}
             />
-            {/* <LeapTextInput
+            <LeapTextInput
               label="Email"
               value={formData.email}
               keyboardType="email-address"
+              autoCapitalize="none"
               autoComplete="email"
               onChangeText={(text) => handleInputChange("email", text)}
               isError={formErrors.email}
-            /> */}
-            <LeapTextInput
-              label="UTC Code"
-              value={formData.utcCode}
-              keyboardType="default"
-              // autoComplete="email"
-              onChangeText={(text) => handleInputChange("utcCode", text)}
-              isError={formErrors.utcCode}
             />
             <LeapTextInput
               label="Password"

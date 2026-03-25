@@ -208,10 +208,10 @@ const Profile = ({ navigation }) => {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Ionicons name="code-outline" size={22} color={theme.colors.background} />
+              <Ionicons name="mail-outline" size={22} color={theme.colors.background} />
               <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>UTC Code</Text>
-                <Text style={styles.infoValue}>{user?.utcCode || "N/A"}</Text>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>{user?.email || "N/A"}</Text>
               </View>
             </View>
           </View>

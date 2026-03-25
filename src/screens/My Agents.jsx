@@ -71,7 +71,7 @@ const MyAgents = ({ navigation }) => {
       });
   };
 
-  const AgentComponent = ({ id, fullName, utcCode }) => {
+  const AgentComponent = ({ id, fullName, email }) => {
     const isLoading = loadingReportId === id;
     
     return (
@@ -79,7 +79,7 @@ const MyAgents = ({ navigation }) => {
         <View style={styles.leftSideView}>
           <View>
             <Text style={styles.userName}>{fullName}</Text>
-            <Text style={styles.message}>{utcCode}</Text>
+            <Text style={styles.message}>{email}</Text>
           </View>
         </View>
 
@@ -164,7 +164,7 @@ const MyAgents = ({ navigation }) => {
             <AgentComponent
               id={item.id || item._id}
               fullName={item.fullName}
-              utcCode={item.utcCode}
+              email={item.email}
             />
           )}
         />

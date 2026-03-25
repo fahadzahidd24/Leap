@@ -26,20 +26,21 @@ const TERMS_OF_USE_URL = "https://gitsagroup.com/terms-of-use/";
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
-  // const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [utcCode, setUtcCode] = useState("");
-  const [utcCodeError, setUtcCodeError] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
   const [showAlert, setShowAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
 
   const signinFunc = () => {
-    if(!utcCode.trim()) {
-      setUtcCodeError(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+      setEmailError(true);
       return;
     }
     if(!password.trim()) {
@@ -48,7 +49,7 @@ const SignIn = ({ navigation }) => {
     }
     setLoading(true);
     publicApi
-      .post("/login", { utcCode, password })
+      .post("/login", { email: normalizedEmail, password })
       .then(async(res) => {
         const user = res.data.user;
         if(user?.role !== "agent" && user?.role !== "manager"){
@@ -137,12 +138,16 @@ const SignIn = ({ navigation }) => {
               isError={emailError}
             /> */}
             <LeapTextInput
-              label="UTC Code"
-              value={utcCode}
-              keyboardType="default"
-              // autoComplete="email"
-              onChangeText={(text) => setUtcCode(text)}
-              isError={utcCodeError}
+              label="Email"
+              value={email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              onChangeText={(text) => {
+                setEmail(text);
+                setEmailError(false);
+              }}
+              isError={emailError}
             />
             <LeapTextInput
               label={"Password"}

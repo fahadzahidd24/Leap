@@ -28,6 +28,7 @@
         "backgroundColor": "#3971c2"
       },
       "package": "com.softwarepro.strides",
+      "versionCode": 2,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "com.google.android.gms.permission.AD_ID"
