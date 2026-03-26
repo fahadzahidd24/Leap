@@ -39,10 +39,17 @@
     },
     "plugins": [
       "expo-font",
+      "expo-notifications",
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you upload your profile picture."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "The app uses your location to support manager live tracking while you are working."
         }
       ],
       [

@@ -7,6 +7,7 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { View, Text, ActivityIndicator, Alert, Platform } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
 import AppStack from "./src/navigation/AppStack";
 import AuthStack from "./src/navigation/AuthStack";
 import { logoutUser, setUser } from "./src/redux/features/userSlice";
@@ -17,14 +18,35 @@ import { resetEntries, setEntries } from "./src/redux/features/entriesSlice";
 import * as Linking from "expo-linking";
 import { resetChat } from "./src/redux/features/chatSlice";
 import { requestTrackingPermissionsAsync, getTrackingPermissionsAsync } from "expo-tracking-transparency";
+import * as Notifications from "expo-notifications";
+import {
+  resetGamification,
+  setAgentDailyMissions,
+  setAgentNotifications,
+  setAgentScorecard,
+  setExpoDeviceState,
+} from "./src/redux/features/gamificationSlice";
+import { gamificationApi } from "./src/api/gamification";
+import { registerGamificationDevice } from "./src/utils/registerGamificationDevice";
+import useSocket from "./src/hooks/useSocket";
 LogBox.ignoreAllLogs();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function StartUp() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const user = useSelector((state) => state.User);
+  const { sendEvent } = useSocket();
   const [loading, setLoading] = useState(true);
   const appOpenTrackedRef = useRef(false);
+  const locationSubscriptionRef = useRef(null);
 
   const loadUser = useCallback(async () => {
     try {
@@ -59,8 +81,24 @@ function StartUp() {
     if (user?.token) {
       try {
         setLoading(true);
-        const res = await privateApi(user.token).get("/entries");
-        dispatch(setEntries({ entries: res.data.entries }));
+        const [entriesRes, scorecard, dailyMissions, notifications] =
+          await Promise.all([
+            privateApi(user.token).get("/entries"),
+            gamificationApi.getScorecard(user.token).catch(() => null),
+            gamificationApi.getDailyMissions(user.token).catch(() => ({
+              progressPercent: 0,
+              missions: [],
+            })),
+            gamificationApi.getNotifications(user.token).catch(() => ({
+              notifications: [],
+              preferences: null,
+            })),
+          ]);
+
+        dispatch(setEntries({ entries: entriesRes.data.entries }));
+        dispatch(setAgentScorecard(scorecard));
+        dispatch(setAgentDailyMissions(dailyMissions));
+        dispatch(setAgentNotifications(notifications));
       } catch (err) {
         console.error("Error fetching entries", err.response?.data);
 
@@ -75,6 +113,7 @@ function StartUp() {
                   dispatch(logoutUser());
                   dispatch(resetEntries());
                   dispatch(resetChat());
+                  dispatch(resetGamification());
                 },
               },
             ],
@@ -105,6 +144,97 @@ function StartUp() {
         .catch((err) => console.error("App-open tracking error:", err));
     }
   }, [user?.token]);
+
+  useEffect(() => {
+    if (!user?.token || loading) {
+      return;
+    }
+
+    registerGamificationDevice(user.token)
+      .then((deviceState) => {
+        dispatch(setExpoDeviceState(deviceState));
+      })
+      .catch((error) => {
+        console.error("Error registering gamification device:", error);
+      });
+  }, [dispatch, loading, user?.token]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const startLocationTracking = async () => {
+      if (
+        !user?.token ||
+        user?.role !== "agent" ||
+        !user?._id ||
+        !user?.companyName
+      ) {
+        if (locationSubscriptionRef.current) {
+          locationSubscriptionRef.current.remove();
+          locationSubscriptionRef.current = null;
+        }
+        return;
+      }
+
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted" || !isMounted) {
+          return;
+        }
+
+        if (locationSubscriptionRef.current) {
+          locationSubscriptionRef.current.remove();
+          locationSubscriptionRef.current = null;
+        }
+
+        locationSubscriptionRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 60000,
+            distanceInterval: 50,
+          },
+          async ({ coords }) => {
+            const payload = {
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              agentId: user._id,
+              agentName: user.fullName || "Agent",
+              companyName: user.companyName,
+              profilePic: user.profilePic || "profile-placeholder",
+            };
+
+            try {
+              await privateApi(user.token).post("/location", payload);
+              sendEvent("agentLocation", payload);
+            } catch (error) {
+              console.error("Error sending live location:", error);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Error starting location tracking:", error);
+      }
+    };
+
+    startLocationTracking();
+
+    return () => {
+      isMounted = false;
+      if (locationSubscriptionRef.current) {
+        locationSubscriptionRef.current.remove();
+        locationSubscriptionRef.current = null;
+      }
+    };
+  }, [
+    loading,
+    sendEvent,
+    user?._id,
+    user?.companyName,
+    user?.fullName,
+    user?.profilePic,
+    user?.role,
+    user?.token,
+  ]);
 
   // Request App Tracking Transparency permission on iOS
   useEffect(() => {

@@ -27,9 +27,14 @@ import {
   setWeeklyAchieved,
   setYearlyAchieved,
 } from "../redux/features/entriesSlice";
+import {
+  setAgentDailyMissions,
+  setAgentScorecard,
+} from "../redux/features/gamificationSlice";
 import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { calcPercentage } from "../utils/formatPercentage";
+import { gamificationApi } from "../api/gamification";
 
 // Video data for PAPS - matches Masterclass videos
 const videoData = {
@@ -519,7 +524,20 @@ const DailyActivity = ({ navigation }) => {
               dispatch(setYearlyAchieved({ yearly: res.data.pas }));
             })
             .catch((err) => console.error(err))
-            .finally(() => setLoading(false));
+            .finally(() => {
+              Promise.all([
+                gamificationApi.getScorecard(token).catch(() => null),
+                gamificationApi.getDailyMissions(token).catch(() => ({
+                  progressPercent: 0,
+                  missions: [],
+                })),
+              ])
+                .then(([scorecard, missions]) => {
+                  dispatch(setAgentScorecard(scorecard));
+                  dispatch(setAgentDailyMissions(missions));
+                })
+                .finally(() => setLoading(false));
+            });
         })
         .catch((err) => console.error(err));
     }

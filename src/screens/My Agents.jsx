@@ -7,6 +7,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,54 +15,64 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { privateApi } from "../api/axios";
+import { gamificationApi } from "../api/gamification";
 import { theme } from "../constants/theme";
 import Loader from "../components/Loader";
 import { useFocusEffect } from "@react-navigation/native";
 import { formatPercentage } from "../utils/formatPercentage";
+import { Button } from "react-native-paper";
+import { getMalaysianDateString } from "../utils/currentDate&Day";
 
 const MyAgents = ({ navigation }) => {
   const { token, _id } = useSelector((state) => state.User);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [displayModal, setDisplayModal] = useState(false);
+  const [displayReportModal, setDisplayReportModal] = useState(false);
+  const [displayCoachingModal, setDisplayCoachingModal] = useState(false);
   const [agentPAS, setAgentPAS] = useState({});
   const [agentEntries, setAgentEntries] = useState({});
   const [selectedAgentName, setSelectedAgentName] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState("");
   const [loadingReportId, setLoadingReportId] = useState(null);
+  const [coachingNotes, setCoachingNotes] = useState("");
+  const [focusAreas, setFocusAreas] = useState("");
+  const [outcomes, setOutcomes] = useState("");
+  const [submittingCoaching, setSubmittingCoaching] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
-      if (token) {
-        privateApi(token)
-          .get(`/agents/${_id}`)
-          .then((res) => {
-            console.log("Agents data:", res.data.userDetails);
-            setAgents(res.data.userDetails);
-          })
-          .catch((err) => console.error(err))
-          .finally(() => setLoading(false));
+      if (!token) {
+        setLoading(false);
+        return;
       }
-    }, [token])
+
+      setLoading(true);
+      privateApi(token)
+        .get(`/agents/${_id}`)
+        .then((agentsRes) => {
+          setAgents(agentsRes.data?.userDetails || []);
+        })
+        .catch((error) => console.error("Error loading agents:", error))
+        .finally(() => setLoading(false));
+    }, [token, _id])
   );
 
-  const calculateSalesRatioAchieved = (agentPAS) => {
-    const yearlyAchievedPR = agentPAS?.pr_yearly || 0;
-    const yearlyAchievedS = agentPAS?.s_yearly || 0;
+  const calculateSalesRatioAchieved = (pasData) => {
+    const yearlyAchievedPR = pasData?.pr_yearly || 0;
+    const yearlyAchievedS = pasData?.s_yearly || 0;
     return (yearlyAchievedS / yearlyAchievedPR) * 100;
   };
 
   const fetchAgentReport = (agentId, agentName) => {
     setLoadingReportId(agentId);
     setSelectedAgentName(agentName);
-    
-    // Fetch agent's entries and PAS data
+
     privateApi(token)
       .get(`/entries/${agentId}`)
       .then((res) => {
-        console.log("Agent report data:", res.data);
-        setAgentEntries(res.data?.entries);
-        setAgentPAS(res.data?.pas);
-        setDisplayModal(true);
+        setAgentEntries(res.data?.entries || {});
+        setAgentPAS(res.data?.pas || {});
+        setDisplayReportModal(true);
       })
       .catch((err) => {
         console.error("Error fetching agent report:", err);
@@ -71,107 +82,124 @@ const MyAgents = ({ navigation }) => {
       });
   };
 
-  const AgentComponent = ({ id, fullName, email }) => {
-    const isLoading = loadingReportId === id;
-    
-    return (
-      <View style={styles.agentContainer}>
-        <View style={styles.leftSideView}>
-          <View>
-            <Text style={styles.userName}>{fullName}</Text>
-            <Text style={styles.message}>{email}</Text>
-          </View>
-        </View>
+  const openCoachingModal = (agentId, agentName) => {
+    setSelectedAgentId(agentId);
+    setSelectedAgentName(agentName);
+    setCoachingNotes("");
+    setFocusAreas("");
+    setOutcomes("");
+    setDisplayCoachingModal(true);
+  };
 
-        <TouchableOpacity
-          style={[styles.reportButton, isLoading && styles.reportButtonLoading]}
-          onPress={() => {
-            if (!isLoading) {
-              fetchAgentReport(id, fullName);
-            }
-          }}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <>
-              <Ionicons name="stats-chart" size={16} color="white" />
-              <Text style={styles.reportButtonText}>Report</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-    );
+  const submitCoachingSession = async () => {
+    if (!selectedAgentId || !coachingNotes.trim()) {
+      return;
+    }
+
+    setSubmittingCoaching(true);
+
+    try {
+      await gamificationApi.createCoachingSession(token, {
+        agentUserId: selectedAgentId,
+        date: getMalaysianDateString(),
+        notes: coachingNotes.trim(),
+        focusAreas: focusAreas
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        outcomes: outcomes
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      });
+      setDisplayCoachingModal(false);
+    } catch (error) {
+      console.error("Error creating coaching session:", error);
+    } finally {
+      setSubmittingCoaching(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style={{ backgroundColor: "#000" }} />
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginHorizontal: "5%",
-          width: "90%",
-          //   backgroundColor: "black",
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 26,
-            // backgroundColor: "red",
-            fontWeight: "300",
-            textAlign: "justify",
-            flexWrap: "wrap",
-            color: theme.colors.secondary,
-          }}
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+      <View style={styles.headerRow}>
+        <Text style={styles.pageTitle}>My Agents</Text>
+        <TouchableOpacity
+          style={styles.liveMapButton}
+          onPress={() => navigation.navigate("Live Locations")}
         >
-          My Agents
-        </Text>
-        {/* <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            // backgroundColor: "red",
-            justifyContent: "space-between",
-            marginTop: 10,
-          }}
-        >
-          <EvilIcons
-            name="calendar"
-            size={34}
-            color="white"
-            style={{ marginHorizontal: 3 }}
-          />
-          <MaterialCommunityIcons
-            name="progress-check"
-            size={28}
-            style={{ marginHorizontal: 3 }}
-            color="white"
-          />
-        
-        </View> */}
+          <Ionicons name="location-outline" size={18} color="white" />
+          <Text style={styles.liveMapButtonText}>Live Map</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
         <FlatList
           data={agents}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <AgentComponent
-              id={item.id || item._id}
-              fullName={item.fullName}
-              email={item.email}
-            />
-          )}
+          keyExtractor={(item, index) =>
+            String(item.id || item._id || item.email || index)
+          }
+          renderItem={({ item }) => {
+            const agentId = item.id || item._id;
+            const isLoading = loadingReportId === agentId;
+
+            return (
+              <View style={styles.agentContainer}>
+                <View style={styles.leftSideView}>
+                  <Text style={styles.userName}>{item.fullName}</Text>
+                  <Text style={styles.message}>
+                    {item.email || item.utcCode || "No identifier"}
+                  </Text>
+                </View>
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.inlineButton,
+                      isLoading && styles.inlineButtonLoading,
+                    ]}
+                    onPress={() =>
+                      !isLoading &&
+                      fetchAgentReport(agentId, item.fullName)
+                    }
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text style={styles.inlineButtonText}>Report</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.inlineButton, styles.secondaryButton]}
+                    onPress={() =>
+                      navigation.navigate("Chat", {
+                        userId1: _id,
+                        userId2: agentId,
+                        userName2: item.fullName,
+                      })
+                    }
+                  >
+                    <Ionicons name="chatbubble-outline" size={18} color="white" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          }}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyTitle}>No agents found</Text>
+                <Text style={styles.emptyText}>
+                  Agent roster entries will show up here once your team is linked.
+                </Text>
+              </View>
+            ) : null
+          }
+          showsVerticalScrollIndicator={false}
         />
       </View>
 
-      {/* Agent Performance Report Modal */}
-      <Modal animationType="slide" transparent={true} visible={displayModal}>
+      <Modal animationType="slide" transparent visible={displayReportModal}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -186,8 +214,7 @@ const MyAgents = ({ navigation }) => {
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.p_yearly /
-                        (agentPAS?.total_days *
-                          agentEntries?.daily_goals?.p_daily)) *
+                        (agentPAS?.total_days * agentEntries?.daily_goals?.p_daily)) *
                         100
                     )}
                   </Text>
@@ -197,19 +224,17 @@ const MyAgents = ({ navigation }) => {
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.a_yearly /
-                        (agentPAS?.total_days *
-                          agentEntries?.daily_goals?.a_daily)) *
+                        (agentPAS?.total_days * agentEntries?.daily_goals?.a_daily)) *
                         100
                     )}
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>YTD P:</Text>
+                  <Text style={styles.label}>YTD PR:</Text>
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.pr_yearly /
-                        (agentPAS?.total_days *
-                          agentEntries?.daily_goals?.pr_daily)) *
+                        (agentPAS?.total_days * agentEntries?.daily_goals?.pr_daily)) *
                         100
                     )}
                   </Text>
@@ -219,8 +244,7 @@ const MyAgents = ({ navigation }) => {
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.s_yearly /
-                        (agentPAS?.total_days *
-                          agentEntries?.daily_goals?.s_daily)) *
+                        (agentPAS?.total_days * agentEntries?.daily_goals?.s_daily)) *
                         100
                     )}
                   </Text>
@@ -232,17 +256,13 @@ const MyAgents = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>Appointments Ratio:</Text>
                   <Text style={styles.value}>
-                    {formatPercentage(
-                      (agentPAS?.a_yearly / agentPAS?.p_yearly) * 100
-                    )}
+                    {formatPercentage((agentPAS?.a_yearly / agentPAS?.p_yearly) * 100)}
                   </Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>Presentations Ratio:</Text>
                   <Text style={styles.value}>
-                    {formatPercentage(
-                      (agentPAS?.pr_yearly / agentPAS?.a_yearly) * 100
-                    )}
+                    {formatPercentage((agentPAS?.pr_yearly / agentPAS?.a_yearly) * 100)}
                   </Text>
                 </View>
                 <View style={styles.row}>
@@ -277,13 +297,61 @@ const MyAgents = ({ navigation }) => {
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => {
-                setDisplayModal(false);
+                setDisplayReportModal(false);
                 setAgentEntries({});
                 setAgentPAS({});
               }}
             >
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={displayCoachingModal}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Log Coaching Session</Text>
+            <Text style={styles.modalSubtitle}>{selectedAgentName}</Text>
+            <TextInput
+              value={coachingNotes}
+              onChangeText={setCoachingNotes}
+              placeholder="Session notes"
+              placeholderTextColor={theme.colors.textMuted}
+              multiline
+              style={styles.textArea}
+            />
+            <TextInput
+              value={focusAreas}
+              onChangeText={setFocusAreas}
+              placeholder="Focus areas (comma separated)"
+              placeholderTextColor={theme.colors.textMuted}
+              style={styles.input}
+            />
+            <TextInput
+              value={outcomes}
+              onChangeText={setOutcomes}
+              placeholder="Outcomes (comma separated)"
+              placeholderTextColor={theme.colors.textMuted}
+              style={styles.input}
+            />
+            <View style={styles.modalActions}>
+              <Button
+                mode="contained"
+                onPress={submitCoachingSession}
+                loading={submittingCoaching}
+                disabled={submittingCoaching}
+              >
+                Save
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={() => setDisplayCoachingModal(false)}
+                disabled={submittingCoaching}
+              >
+                Cancel
+              </Button>
+            </View>
           </View>
         </View>
       </Modal>
@@ -299,92 +367,126 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    justifyContent: "flex-start",
-    width: "100%",
-    paddingVertical: 20,
+  },
+  headerRow: {
     paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "white",
+  },
+  liveMapButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  liveMapButtonText: {
+    color: "white",
+    fontWeight: "700",
+    marginLeft: 6,
   },
   listContainer: {
-    width: "90%",
-    marginTop: 15,
     flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   agentContainer: {
-    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#fff",
     padding: 12,
-    borderRadius: 10,
-    marginBottom: 13,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 1.84,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  emptyState: {
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 12,
   },
   leftSideView: {
-    flexDirection: "row",
-    alignItems: "center",
     flex: 1,
+    paddingRight: 10,
   },
   userName: {
     fontSize: 15,
     fontWeight: "600",
+    color: theme.colors.textPrimary,
   },
   message: {
     fontSize: 13,
     color: "gray",
     marginTop: 2,
   },
-  reportButton: {
+  actionRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+  },
+  inlineButton: {
     backgroundColor: theme.colors.background,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
-    minWidth: 85,
+    marginLeft: 8,
+    minWidth: 70,
+    alignItems: "center",
   },
-  reportButtonLoading: {
+  secondaryButton: {
+    backgroundColor: theme.colors.accent,
+  },
+  inlineButtonLoading: {
     opacity: 0.8,
   },
-  reportButtonText: {
+  inlineButtonText: {
     color: "white",
     fontSize: 13,
     fontWeight: "600",
-    marginLeft: 5,
   },
-  // Modal styles
   centeredView: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 20,
   },
   modalView: {
     backgroundColor: "white",
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 20,
-    width: "90%",
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    width: "100%",
+    maxHeight: "85%",
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: "center",
+    color: theme.colors.textPrimary,
+  },
+  modalSubtitle: {
+    textAlign: "center",
+    color: theme.colors.textMuted,
+    marginBottom: 12,
   },
   section: {
     marginVertical: 10,
@@ -419,5 +521,29 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  textArea: {
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: "rgba(100, 116, 139, 0.2)",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    textAlignVertical: "top",
+    color: theme.colors.textPrimary,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "rgba(100, 116, 139, 0.2)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+    color: theme.colors.textPrimary,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
   },
 });

@@ -28,6 +28,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MyAgents from "../screens/My Agents";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
+import { resetGamification } from "../redux/features/gamificationSlice";
 import ChatCoach from "../screens/AskMyCoach/ChatCoach";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ChatGpt from "../screens/AskMyCoach/ChatGpt";
@@ -40,6 +41,13 @@ import Masterclass from "../screens/Masterclass";
 import Profile from "../screens/Profile";
 import Inbox from "../screens/Inbox";
 import Chat from "../screens/Chat";
+import GamificationMissions from "../screens/GamificationMissions";
+import GamificationLeaderboard from "../screens/GamificationLeaderboard";
+import GamificationRecognition from "../screens/GamificationRecognition";
+import AdminGamification from "../screens/AdminGamification";
+import GamificationDashboard from "../screens/GamificationDashboard";
+import ManagerDashboard from "../screens/ManagerDashboard";
+import ManagerLiveMap from "../screens/ManagerLiveMap";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -64,7 +72,16 @@ const getIconForRoute = (routeName) => {
     tabs: { component: MaterialCommunityIcons, name: "view-dashboard-outline" },
     Sales: { component: Ionicons, name: "stats-chart-outline" },
     "My Agents": { component: Feather, name: "users" },
+    Dashboard: {
+      component: MaterialCommunityIcons,
+      name: "view-dashboard-outline",
+    },
     Inbox: { component: Ionicons, name: "mail-outline" },
+    Missions: { component: MaterialCommunityIcons, name: "flag-outline" },
+    Leaderboard: { component: MaterialCommunityIcons, name: "podium-gold" },
+    Recognition: { component: Ionicons, name: "sparkles-outline" },
+    "Admin Console": { component: MaterialCommunityIcons, name: "shield-crown-outline" },
+    "Live Locations": { component: Ionicons, name: "location-outline" },
     Profession: { component: Feather, name: "briefcase" },
     ChatCoach: { component: Ionicons, name: "chatbubbles-outline" },
     Profile: { component: Feather, name: "user" },
@@ -437,12 +454,17 @@ const DrawerNav = () => {
     dispatch(logoutUser());
     dispatch(resetEntries());
     dispatch(resetChat());
+    dispatch(resetGamification());
   };
 
   const agentRoutes = [
     { name: "Home", label: "Home" },
+    { name: "Dashboard", label: "Dashboard" },
     { name: "tabs", label: "Overview" },
     { name: "Sales", label: "Sales Targets" },
+    { name: "Missions", label: "Missions" },
+    { name: "Leaderboard", label: "Leaderboard" },
+    { name: "Recognition", label: "Recognition" },
     { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];
@@ -492,6 +514,15 @@ const DrawerNav = () => {
         }}
       />
       <Drawer.Screen
+        name="Dashboard"
+        component={GamificationDashboard}
+        options={{
+          drawerLabel: "Dashboard",
+          title: "",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
         name="tabs"
         component={TabNav}
         options={{
@@ -504,6 +535,33 @@ const DrawerNav = () => {
         options={{
           drawerLabel: "Sales Targets",
           title: "",
+        }}
+      />
+      <Drawer.Screen
+        name="Missions"
+        component={GamificationMissions}
+        options={{
+          drawerLabel: "Missions",
+          title: "",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
+        name="Leaderboard"
+        component={GamificationLeaderboard}
+        options={{
+          drawerLabel: "Leaderboard",
+          title: "",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
+        name="Recognition"
+        component={GamificationRecognition}
+        options={{
+          drawerLabel: "Recognition",
+          title: "",
+          headerShown: false,
         }}
       />
       <Drawer.Screen
@@ -535,10 +593,13 @@ const ManagerDrawerNav = () => {
     dispatch(logoutUser());
     dispatch(resetEntries());
     dispatch(resetChat());
+    dispatch(resetGamification());
   };
 
   const managerRoutes = [
+    { name: "Dashboard", label: "Dashboard" },
     { name: "My Agents", label: "My Agents" },
+    { name: "Live Locations", label: "Live Locations" },
     { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];
@@ -552,7 +613,7 @@ const ManagerDrawerNav = () => {
           routes={managerRoutes}
         />
       )}
-      initialRouteName="My Agents"
+      initialRouteName="Dashboard"
       screenOptions={{
         title: "",
         headerStyle: {
@@ -579,10 +640,25 @@ const ManagerDrawerNav = () => {
       }}
     >
       <Drawer.Screen
+        name="Dashboard"
+        component={ManagerDashboard}
+        options={{
+          drawerLabel: "Dashboard",
+        }}
+      />
+      <Drawer.Screen
         name="My Agents"
         component={MyAgents}
         options={{
           drawerLabel: "My Agents",
+        }}
+      />
+      <Drawer.Screen
+        name="Live Locations"
+        component={ManagerLiveMap}
+        options={{
+          drawerLabel: "Live Locations",
+          headerShown: false,
         }}
       />
       <Drawer.Screen
@@ -614,6 +690,7 @@ const CoachDrawer = () => {
     dispatch(logoutUser());
     dispatch(resetEntries());
     dispatch(resetChat());
+    dispatch(resetGamification());
   };
 
   const coachRoutes = [
@@ -686,6 +763,78 @@ const CoachDrawer = () => {
   );
 };
 
+const AdminDrawerNav = () => {
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("profession");
+    dispatch(logoutUser());
+    dispatch(resetEntries());
+    dispatch(resetChat());
+    dispatch(resetGamification());
+  };
+
+  const adminRoutes = [
+    { name: "Admin Console", label: "Admin Console" },
+    { name: "Profile", label: "Profile" },
+  ];
+
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => (
+        <CustomDrawerContent
+          {...props}
+          handleLogout={handleLogout}
+          routes={adminRoutes}
+        />
+      )}
+      initialRouteName="Admin Console"
+      screenOptions={{
+        title: "",
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+        },
+        headerShadowVisible: false,
+        drawerStyle: {
+          width: 300,
+        },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.dispatch(DrawerActions.toggleDrawer());
+            }}
+          >
+            <Octicons
+              name="three-bars"
+              size={24}
+              color="white"
+              style={{ marginLeft: 30 }}
+            />
+          </TouchableOpacity>
+        ),
+      }}
+    >
+      <Drawer.Screen
+        name="Admin Console"
+        component={AdminGamification}
+        options={{
+          drawerLabel: "Admin Console",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          drawerLabel: "Profile",
+          title: "",
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
+
 const CoachStack = () => {
   return (
     <NativeStack.Navigator
@@ -707,7 +856,9 @@ export default AppStack = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName={
+        role === "agent" ? "Home" : role === "manager" ? "Manager" : "Admin"
+      }
       screenOptions={{
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
@@ -775,6 +926,15 @@ export default AppStack = () => {
           />
         </>
       )}
+      {role === "admin" && (
+        <>
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Admin"
+            component={AdminDrawerNav}
+          />
+        </>
+      )}
 
       <Stack.Screen
         options={{ headerShown: false }}
@@ -790,6 +950,21 @@ export default AppStack = () => {
         options={{ headerShown: false }}
         name="Chat"
         component={Chat}
+      />
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="Missions"
+        component={GamificationMissions}
+      />
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="Leaderboard"
+        component={GamificationLeaderboard}
+      />
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="Recognition"
+        component={GamificationRecognition}
       />
     </Stack.Navigator>
   );

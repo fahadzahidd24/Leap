@@ -13,8 +13,7 @@ import {
 } from "react-native";
 import React from "react";
 import { theme } from "../constants/theme";
-import { useDispatch, useSelector } from "react-redux";
-import Octicons from "@expo/vector-icons/Octicons";
+import { useSelector } from "react-redux";
 
 const Module = ({ navigation, text, bg, fg, href, routeName }) => {
   return (
@@ -74,15 +73,7 @@ const Module = ({ navigation, text, bg, fg, href, routeName }) => {
 };
 
 const Home = ({ navigation }) => {
-  const entries = useSelector((state) => state.Entries);
   const user = useSelector((state) => state.User);
-  console.log(user);
-
-  // const href = entries?.SalesTargets?.salesTargets
-  //   ? "/(sales)/(tabs)"
-  //   : "/(sales)";
-
-  // const href = "/(manager)";
 
   return (
     <SafeAreaView style={styles.backgroundStyle}>
@@ -131,10 +122,10 @@ const Home = ({ navigation }) => {
           >
             My Sales Coach
           </Text> */}
-          {/* <Image
+          <Image
             source={require("../../assets/welcome.png")}
-            style={{ alignSelf: "center", marginTop: 20 }}
-          /> */}
+            style={{ alignSelf: "center" }}
+          />
 
           <Text
             style={{
@@ -149,6 +140,17 @@ const Home = ({ navigation }) => {
           >
             You Get What You Track
           </Text>
+
+          <TouchableOpacity
+            style={styles.dashboardButton}
+            onPress={() =>
+              navigation.navigate("Agent", {
+                screen: "Dashboard",
+              })
+            }
+          >
+            <Text style={styles.dashboardButtonText}>Open Dashboard</Text>
+          </TouchableOpacity>
 
           {/* <Text
             style={{
@@ -196,6 +198,7 @@ const Home = ({ navigation }) => {
               routeName={"Agent"}
             />
           </View>
+        
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -215,7 +218,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   drawerButton: {
-    // padding: 10,
     alignSelf: "flex-start",
+  },
+  dashboardButton: {
+    marginHorizontal: 10,
+    marginTop: 25,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dashboardButtonText: {
+    color: theme.colors.secondary,
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

@@ -4,6 +4,7 @@ import { logoutUser } from "../redux/features/userSlice";
 import { Alert } from "react-native";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
+import { resetGamification } from "../redux/features/gamificationSlice";
 
 // const baseURL = "https://stride-api.leaptechsolutions.com/api";
 // const publicURL = "https://stride-api.leaptechsolutions.com/public";
@@ -43,6 +44,7 @@ const privateApi = (token) => {
                 store.dispatch(logoutUser());
                 store.dispatch(resetEntries());
                 store.dispatch(resetChat());
+                store.dispatch(resetGamification());
               },
             },
           ],

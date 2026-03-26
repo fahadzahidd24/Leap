@@ -1,17 +1,19 @@
 import {
+  ActivityIndicator,
   Alert,
   Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import { theme } from "../constants/theme";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -20,18 +22,87 @@ import { logoutUser, updateUserProfile } from "../redux/features/userSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import GamificationCard from "../components/GamificationCard";
+import GamificationEmptyState from "../components/GamificationEmptyState";
+import {
+  resetGamification,
+  setAgentNotifications,
+  setAgentTier,
+} from "../redux/features/gamificationSlice";
+import { gamificationApi } from "../api/gamification";
+
+const preferenceRows = [
+  { key: "pushEnabled", label: "Push notifications" },
+  { key: "morningReminder", label: "Morning reminders" },
+  { key: "middayReminder", label: "Midday reminders" },
+  { key: "achievementAlerts", label: "Achievement alerts" },
+  { key: "streakProtection", label: "Streak protection" },
+  { key: "weeklySummary", label: "Weekly summary" },
+  { key: "leaderboardMovement", label: "Leaderboard movement" },
+];
+
+const defaultPreferences = {
+  pushEnabled: false,
+  morningReminder: false,
+  middayReminder: false,
+  achievementAlerts: true,
+  streakProtection: true,
+  weeklySummary: true,
+  leaderboardMovement: true,
+  maxPerDay: 3,
+};
 
 const Profile = ({ navigation }) => {
   const user = useSelector((state) => state.User);
+  const { tier, notifications, preferences } = useSelector(
+    (state) => state.Gamification.agent
+  );
+  const expoDevice = useSelector((state) => state.Gamification.expoDevice);
   const dispatch = useDispatch();
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [localPreferences, setLocalPreferences] = useState(defaultPreferences);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!user?.token) {
+        return;
+      }
+
+      Promise.all([
+        gamificationApi.getTier(user.token),
+        gamificationApi.getNotifications(user.token),
+      ])
+        .then(([tierData, notificationData]) => {
+          dispatch(setAgentTier(tierData));
+          dispatch(setAgentNotifications(notificationData));
+          setLocalPreferences(notificationData?.preferences || defaultPreferences);
+        })
+        .catch((error) => console.error("Error loading profile gamification:", error));
+    }, [dispatch, user?.token])
+  );
+
+  const profileImage = useMemo(() => {
+    if (!user?.profilePic) {
+      return null;
+    }
+
+    const picPath = user.profilePic.startsWith("/")
+      ? user.profilePic.slice(1)
+      : user.profilePic;
+    return { uri: `${publicURL}/${picPath}` };
+  }, [user?.profilePic]);
 
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert("Permission Required", "Please allow access to your photo library.");
+      Alert.alert(
+        "Permission Required",
+        "Please allow access to your photo library."
+      );
       return;
     }
 
@@ -49,7 +120,7 @@ const Profile = ({ navigation }) => {
 
   const uploadProfilePicture = async (image) => {
     setUploading(true);
-    
+
     const formData = new FormData();
     formData.append("profilePic", {
       uri: image.uri,
@@ -58,13 +129,12 @@ const Profile = ({ navigation }) => {
     });
 
     try {
-      const response = await privateApi(user.token).put("/profile/picture", formData, {
+      await privateApi(user.token).put("/profile/picture", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // After upload, fetch fresh user data from server to get correct profilePic path
       const profileResponse = await privateApi(user.token).get("/profile");
       if (profileResponse.data?.user) {
         dispatch(updateUserProfile(profileResponse.data.user));
@@ -72,9 +142,37 @@ const Profile = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error uploading profile picture:", error);
-      Alert.alert("Error", error.response?.data?.message || "Failed to update profile picture.");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to update profile picture."
+      );
     } finally {
       setUploading(false);
+    }
+  };
+
+  const savePreferenceChange = async (key, value) => {
+    const updatedPreferences = {
+      ...(localPreferences || defaultPreferences),
+      [key]: value,
+    };
+
+    setLocalPreferences(updatedPreferences);
+    setSavingPreferences(true);
+
+    try {
+      const savedPreferences = await gamificationApi.updatePreferences(
+        user.token,
+        updatedPreferences
+      );
+      setLocalPreferences(savedPreferences);
+      dispatch(setAgentNotifications({ notifications, preferences: savedPreferences }));
+    } catch (error) {
+      console.error("Error updating preferences:", error);
+      Alert.alert("Error", "Unable to update notification preferences.");
+      setLocalPreferences(localPreferences || defaultPreferences);
+    } finally {
+      setSavingPreferences(false);
     }
   };
 
@@ -99,49 +197,46 @@ const Profile = ({ navigation }) => {
 
   const confirmDeleteAccount = async () => {
     setDeleting(true);
-    
+
     try {
       await privateApi(user.token).delete("/profile/delete");
-      
-      // Clear all data and logout
       await AsyncStorage.removeItem("profession");
       dispatch(logoutUser());
       dispatch(resetEntries());
       dispatch(resetChat());
-      
-      Alert.alert("Account Deleted", "Your account has been successfully deleted.");
+      dispatch(resetGamification());
+
+      Alert.alert(
+        "Account Deleted",
+        "Your account has been successfully deleted."
+      );
     } catch (error) {
       console.error("Error deleting account:", error);
-      Alert.alert("Error", error.response?.data?.message || "Failed to delete account.");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to delete account."
+      );
       setDeleting(false);
     }
   };
 
-  const getProfileImage = () => {
-    if (user?.profilePic) {
-      // Handle both cases: with or without leading slash
-      const picPath = user.profilePic.startsWith('/') ? user.profilePic.slice(1) : user.profilePic;
-      return { uri: `${publicURL}/${picPath}` };
-    }
-    return null;
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.background}
+      />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <Text style={styles.headerTitle}>Profile</Text>
 
-        {/* Profile Picture Section */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            {getProfileImage() ? (
-              <Image source={getProfileImage()} style={styles.avatar} />
+            {profileImage ? (
+              <Image source={profileImage} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Text style={styles.avatarText}>
@@ -149,7 +244,7 @@ const Profile = ({ navigation }) => {
                 </Text>
               </View>
             )}
-            
+
             <TouchableOpacity
               style={styles.editButton}
               onPress={pickImage}
@@ -164,20 +259,65 @@ const Profile = ({ navigation }) => {
           </View>
 
           <Text style={styles.userName}>{user?.fullName || "User"}</Text>
-          {/* <Text style={styles.userEmail}>{user?.email || ""}</Text> */}
           <Text style={styles.userRole}>
-            {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"}
-            {/* {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"} */}
+            {user?.role
+              ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+              : "Member"}
           </Text>
         </View>
 
-        {/* Account Info Section */}
+        <GamificationCard
+          title="Tier & Momentum"
+          subtitle={
+            tier?.nextTier ? `Next tier: ${tier.nextTier}` : "Gamification summary"
+          }
+          rightContent={
+            <TouchableOpacity onPress={() => navigation.navigate("Recognition")}>
+              <Text style={styles.linkText}>Open</Text>
+            </TouchableOpacity>
+          }
+        >
+          {tier ? (
+            <>
+              <View style={styles.tierRow}>
+                <View>
+                  <Text style={styles.tierLabel}>Current</Text>
+                  <Text style={styles.tierValue}>{tier.currentTier}</Text>
+                </View>
+                <View style={styles.tierAlignRight}>
+                  <Text style={styles.tierLabel}>Lifetime score</Text>
+                  <Text style={styles.tierValue}>{tier.lifetimeScore ?? 0}</Text>
+                </View>
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min(100, tier.progressPercent || 0)}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.progressText}>
+                {tier.progressPercent ?? 0}% progress toward {tier.nextTier || "the next tier"}
+              </Text>
+            </>
+          ) : (
+            <GamificationEmptyState
+              title="No tier data yet"
+              message="Keep logging activity to build momentum."
+            />
+          )}
+        </GamificationCard>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Information</Text>
-          
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Ionicons name="person-outline" size={22} color={theme.colors.background} />
+              <Ionicons
+                name="person-outline"
+                size={22}
+                color={theme.colors.background}
+              />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Full Name</Text>
                 <Text style={styles.infoValue}>{user?.fullName || "N/A"}</Text>
@@ -186,28 +326,28 @@ const Profile = ({ navigation }) => {
 
             <View style={styles.divider} />
 
-            {/* <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={22} color={theme.colors.background} />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{user?.email || "N/A"}</Text>
-              </View>
-            </View> */}
-
-            <View style={styles.divider} />
-
             <View style={styles.infoRow}>
-              <Ionicons name="business-outline" size={22} color={theme.colors.background} />
+              <Ionicons
+                name="business-outline"
+                size={22}
+                color={theme.colors.background}
+              />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Company</Text>
-                <Text style={styles.infoValue}>{user?.companyName || "N/A"}</Text>
+                <Text style={styles.infoValue}>
+                  {user?.companyName || "N/A"}
+                </Text>
               </View>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={22} color={theme.colors.background} />
+              <Ionicons
+                name="mail-outline"
+                size={22}
+                color={theme.colors.background}
+              />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Email</Text>
                 <Text style={styles.infoValue}>{user?.email || "N/A"}</Text>
@@ -216,10 +356,73 @@ const Profile = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Danger Zone */}
+        <GamificationCard
+          title="Notification Preferences"
+          subtitle={
+            expoDevice?.permissionStatus === "granted"
+              ? "Push registration active"
+              : "Push permission not granted yet"
+          }
+        >
+          <View style={styles.preferenceMetaRow}>
+            <Text style={styles.preferenceMeta}>
+              Device status: {expoDevice?.permissionStatus || "unknown"}
+            </Text>
+            {savingPreferences ? (
+              <ActivityIndicator size="small" color={theme.colors.background} />
+            ) : null}
+          </View>
+
+          {preferenceRows.map((preference) => (
+            <View key={preference.key} style={styles.preferenceRow}>
+              <Text style={styles.preferenceLabel}>{preference.label}</Text>
+              <Switch
+                value={Boolean(localPreferences?.[preference.key])}
+                onValueChange={(value) =>
+                  savePreferenceChange(preference.key, value)
+                }
+                trackColor={{
+                  false: "rgba(100, 116, 139, 0.3)",
+                  true: "rgba(56, 113, 193, 0.4)",
+                }}
+                thumbColor={
+                  localPreferences?.[preference.key]
+                    ? theme.colors.background
+                    : "#f4f4f5"
+                }
+              />
+            </View>
+          ))}
+        </GamificationCard>
+
+        <GamificationCard title="Recent Notifications" subtitle="Latest reminders and updates">
+          {notifications?.length ? (
+            notifications.slice(0, 5).map((item, index) => (
+              <View key={`${item.title}-${index}`} style={styles.notificationRow}>
+                <Ionicons
+                  name={
+                    item.status === "sent"
+                      ? "notifications"
+                      : "notifications-outline"
+                  }
+                  size={18}
+                  color={theme.colors.background}
+                />
+                <View style={styles.notificationText}>
+                  <Text style={styles.notificationTitle}>{item.title}</Text>
+                  <Text style={styles.notificationBody}>{item.body}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <GamificationEmptyState
+              title="No notifications yet"
+              message="Weekly summaries, streak alerts, and achievements will appear here."
+            />
+          )}
+        </GamificationCard>
+
         <View style={styles.section}>
-          {/* <Text style={[styles.sectionTitle, { color: "#ef4444" }]}>Danger Zone</Text> */}
-          
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={handleDeleteAccount}
@@ -234,7 +437,7 @@ const Profile = ({ navigation }) => {
               </>
             )}
           </TouchableOpacity>
-          
+
           <Text style={styles.warningText}>
             This will permanently delete your account and all associated data.
           </Text>
@@ -259,11 +462,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "300",
     color: theme.colors.secondary,
-    marginBottom: 30,
+    marginBottom: 24,
   },
   profileSection: {
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 24,
   },
   avatarContainer: {
     position: "relative",
@@ -280,7 +483,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "#f7a11f",
+    backgroundColor: theme.colors.accent,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
@@ -310,14 +513,9 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
     marginBottom: 5,
   },
-  userEmail: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
-    marginBottom: 5,
-  },
   userRole: {
     fontSize: 14,
-    color: "#f7a11f",
+    color: theme.colors.accent,
     fontWeight: "500",
   },
   section: {
@@ -357,6 +555,90 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#e0e0e0",
+  },
+  linkText: {
+    color: theme.colors.background,
+    fontWeight: "700",
+  },
+  tierRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  tierAlignRight: {
+    alignItems: "flex-end",
+  },
+  tierLabel: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    marginBottom: 4,
+  },
+  tierValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
+  },
+  progressTrack: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(100, 116, 139, 0.18)",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: theme.colors.accent,
+    borderRadius: 999,
+  },
+  progressText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: theme.colors.textMuted,
+  },
+  preferenceMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  preferenceMeta: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+  },
+  preferenceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(100, 116, 139, 0.12)",
+  },
+  preferenceLabel: {
+    flex: 1,
+    marginRight: 12,
+    fontSize: 14,
+    fontWeight: "600",
+    color: theme.colors.textPrimary,
+  },
+  notificationRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(100, 116, 139, 0.12)",
+  },
+  notificationText: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  notificationTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
+  },
+  notificationBody: {
+    marginTop: 4,
+    fontSize: 12,
+    color: theme.colors.textMuted,
   },
   deleteButton: {
     backgroundColor: "#ef4444",

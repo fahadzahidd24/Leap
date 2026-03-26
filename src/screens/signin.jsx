@@ -52,8 +52,15 @@ const SignIn = ({ navigation }) => {
       .post("/login", { email: normalizedEmail, password })
       .then(async(res) => {
         const user = res.data.user;
-        if(user?.role !== "agent" && user?.role !== "manager"){
-          Alert.alert("Login Failed", "You are not an agent or a manager. Only agents and managers can login.");
+        if (
+          user?.role !== "agent" &&
+          user?.role !== "manager" &&
+          user?.role !== "admin"
+        ) {
+          Alert.alert(
+            "Login Failed",
+            "You are not authorized to access this app."
+          );
           return;
         }
 
