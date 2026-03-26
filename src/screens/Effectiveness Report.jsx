@@ -1,20 +1,25 @@
 import {
+  Alert,
+  FlatList,
   Image,
+  KeyboardAvoidingView,
+  Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useState } from "react";
 import { theme } from "../constants/theme";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
-  EvilIcons,
+  Entypo,
   MaterialCommunityIcons,
-  MaterialIcons,
 } from "@expo/vector-icons";
-
 import { useDispatch, useSelector } from "react-redux";
 import { privateApi } from "../api/axios";
 import {
@@ -25,12 +30,13 @@ import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { formatPercentage } from "../utils/formatPercentage";
 import { getMalaysianDateString } from "../utils/currentDate&Day";
+import { Button } from "react-native-paper";
 
 const Category = ({ goal, achieved, text, backgroundColor }) => {
   return (
     <View
       style={{
-        backgroundColor: backgroundColor,
+        backgroundColor,
         flexDirection: "row",
         paddingHorizontal: 40,
         marginVertical: 5,
@@ -95,12 +101,88 @@ const Category = ({ goal, achieved, text, backgroundColor }) => {
   );
 };
 
+const ImprovementPlan = ({ item, deletePlan }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <View
+      style={{
+        borderWidth: 2.5,
+        borderRadius: 5,
+        borderColor: "#b2b2b2",
+        backgroundColor: theme.colors.secondary,
+        marginHorizontal: 15,
+        marginVertical: 5,
+        paddingVertical: 15,
+        paddingHorizontal: 10,
+      }}
+    >
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          width: "100%",
+        }}
+        onPress={() => setExpanded((prev) => !prev)}
+        onLongPress={deletePlan}
+        activeOpacity={0.7}
+      >
+        <Entypo
+          name={expanded ? "triangle-down" : "triangle-right"}
+          size={36}
+          color={theme.colors.background}
+          style={{ marginTop: -5 }}
+        />
+        <View style={{ flexShrink: 1, paddingLeft: 10 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: "black",
+              fontWeight: "bold",
+              marginBottom: 5,
+            }}
+          >
+            {item.title}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: "black",
+              flexWrap: "wrap",
+            }}
+          >
+            {item.subTitle}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={{ marginTop: 10, paddingLeft: 36 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: "black",
+            }}
+          >
+            {item.description}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const EffectivenessReport = () => {
   const entries = useSelector((state) => state.Entries);
   const navigation = useNavigation();
   const token = useSelector((state) => state.User?.token);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+  const [isAddEventModalVisible, setAddEventModalVisible] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [title, setTitle] = useState("");
+  const [subTitle, setSubTitle] = useState("");
+  const [description, setDescription] = useState("");
 
   useFocusEffect(
     React.useCallback(() => {
@@ -113,6 +195,13 @@ const EffectivenessReport = () => {
           .catch((err) => console.error(err));
 
         privateApi(token)
+          .get(`/improvementplan`)
+          .then((res) => {
+            setPlans(res.data.plans);
+          })
+          .catch((err) => console.error(err));
+
+        privateApi(token)
           .get(`/pas/weekly?date=${getMalaysianDateString()}`)
           .then((res) => {
             dispatch(setWeeklyAchieved({ weekly: res.data.pas }));
@@ -120,46 +209,89 @@ const EffectivenessReport = () => {
           .catch((err) => console.error(err))
           .finally(() => setLoading(false));
       }
-    }, [token])
+    }, [dispatch, token])
   );
 
-  const calculateSalesRatioGoal = (entries) => {
-    const salesSubmitted = entries?.SuccessFormula?.salesSubmitted || 0;
-    const presentationsHeld = entries?.SuccessFormula?.presentationsHeld || 0;
+  const calculateSalesRatioGoal = (currentEntries) => {
+    const salesSubmitted = currentEntries?.SuccessFormula?.salesSubmitted || 0;
+    const presentationsHeld =
+      currentEntries?.SuccessFormula?.presentationsHeld || 0;
 
-    // Let division handle 0/0 = NaN naturally for proper display
     return (salesSubmitted / presentationsHeld) * 100;
   };
 
-  const calculateSalesRatioAchieved = (entries) => {
-    const yearlyAchievedPR = entries?.yearly_achieved?.pr_yearly || 0;
-    const yearlyAchievedS = entries?.yearly_achieved?.s_yearly || 0;
+  const calculateSalesRatioAchieved = (currentEntries) => {
+    const yearlyAchievedPR = currentEntries?.yearly_achieved?.pr_yearly || 0;
+    const yearlyAchievedS = currentEntries?.yearly_achieved?.s_yearly || 0;
 
-    // Let division handle 0/0 = NaN naturally for proper display
     return (yearlyAchievedS / yearlyAchievedPR) * 100;
   };
 
-  console.log("entries?.SuccessFormula", entries?.SuccessFormula)
+  const calculatePresentationRatioGoal = (currentEntries) => {
+    const presentationsHeld =
+      currentEntries?.SuccessFormula?.presentationsHeld || 0;
+    const appointmentsKept =
+      currentEntries?.SuccessFormula?.appointmentsKept || 0;
 
-  const calculatePresentationRatioGoal = (entries) => {
-    const presentationsHeld = entries?.SuccessFormula?.presentationsHeld || 0;
-    const appointmentsKept = entries?.SuccessFormula?.appointmentsKept || 0;
-
-    console.log("presentationsHeld", presentationsHeld)
-    console.log("appointmentsKept", appointmentsKept)
-
-    // Let division handle 0/0 = NaN naturally for proper display
     return (presentationsHeld / appointmentsKept) * 100;
   };
 
-  console.log("calculatePresentationRatioGoal", entries?.yearly_achieved)
+  const calculatePresentationRatioAchieved = (currentEntries) => {
+    const yearlyAchievedA = currentEntries?.yearly_achieved?.a_yearly || 0;
+    const yearlyAchievedPR = currentEntries?.yearly_achieved?.pr_yearly || 0;
 
-  const calculatePresentationRatioAchieved = (entries) => {
-    const yearlyAchievedA = entries?.yearly_achieved?.a_yearly || 0;
-    const yearlyAchievedPR = entries?.yearly_achieved?.pr_yearly || 0;
-
-    // Let division handle 0/0 = NaN naturally for proper display
     return (yearlyAchievedPR / yearlyAchievedA) * 100;
+  };
+
+  const savePlan = () => {
+    if (!title || !subTitle || !description) {
+      return;
+    }
+
+    privateApi(token)
+      .post(`/improvementplan`, { title, subTitle, description })
+      .then((res) => {
+        setPlans((prevPlans) => [...prevPlans, res.data.plan]);
+        setAddEventModalVisible(false);
+        setTitle("");
+        setSubTitle("");
+        setDescription("");
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const deletePlan = (id) => {
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this improvement plan?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            privateApi(token)
+              .delete(`/improvementplan/${id}`)
+              .then(() => {
+                setPlans((prevPlans) =>
+                  prevPlans.filter((plan) => plan._id !== id)
+                );
+              })
+              .catch((err) => console.error(err));
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const closeAddPlanModal = () => {
+    setAddEventModalVisible(false);
+    setTitle("");
+    setSubTitle("");
+    setDescription("");
   };
 
   return (
@@ -176,24 +308,20 @@ const EffectivenessReport = () => {
           paddingBottom: 20,
           flexGrow: 1,
           paddingHorizontal: 10,
-          // backgroundColor: "yellow",
         }}
         bounces={false}
         showsVerticalScrollIndicator={false}
-        style={styles.scrollViewStyle}
       >
         <View
           style={{
             flexDirection: "row",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            //   backgroundColor: "black",
           }}
         >
           <Text
             style={{
               fontSize: 26,
-              // backgroundColor: "red",
               fontWeight: "300",
               textAlign: "justify",
               flexWrap: "wrap",
@@ -206,18 +334,10 @@ const EffectivenessReport = () => {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              // backgroundColor: "red",
               justifyContent: "space-between",
               marginTop: 10,
             }}
           >
-            {/* <EvilIcons
-              name="calendar"
-              onPress={() => navigation.navigate("DailySchedule")}
-              size={34}
-              color="white"
-              style={{ marginHorizontal: 3 }}
-            /> */}
             <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
@@ -232,12 +352,6 @@ const EffectivenessReport = () => {
               style={{ marginHorizontal: 3 }}
               color="white"
             />
-            {/* <Entypo
-              name="dots-three-vertical"
-              size={24}
-              color="white"
-              style={{ marginHorizontal: 3 }}
-            /> */}
           </View>
         </View>
 
@@ -245,7 +359,6 @@ const EffectivenessReport = () => {
           <Text
             style={{
               fontSize: 21,
-              // backgroundColor: "red",
               marginTop: 20,
               marginBottom: 5,
               fontWeight: "bold",
@@ -259,20 +372,19 @@ const EffectivenessReport = () => {
             goal={
               (entries?.SuccessFormula?.appointmentsKept /
                 entries?.SuccessFormula?.prospectingApproach) *
-                100
+              100
             }
             achieved={
               (entries?.yearly_achieved?.a_yearly /
                 entries?.yearly_achieved?.p_yearly) *
-                100
+              100
             }
             backgroundColor={"#ffca08"}
           />
 
-<Text
+          <Text
             style={{
               fontSize: 21,
-              // backgroundColor: "red",
               marginTop: 20,
               marginBottom: 5,
               fontWeight: "bold",
@@ -291,7 +403,6 @@ const EffectivenessReport = () => {
           <Text
             style={{
               fontSize: 21,
-              // backgroundColor: "red",
               marginTop: 20,
               marginBottom: 5,
               fontWeight: "bold",
@@ -307,8 +418,110 @@ const EffectivenessReport = () => {
             backgroundColor={"#00bf63"}
           />
         </View>
+
+        <View
+          style={{
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 5,
+            paddingVertical: 10,
+            marginTop: 40,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 26,
+                fontWeight: "700",
+                color: "black",
+                textAlign: "center",
+              }}
+            >
+              Improvement Plan
+            </Text>
+            <Ionicons
+              onPress={() => setAddEventModalVisible(true)}
+              name="add-circle-outline"
+              size={30}
+              color="black"
+            />
+          </View>
+          <View>
+            <FlatList
+              data={plans}
+              keyExtractor={(item, index) => item?._id || index.toString()}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                <ImprovementPlan
+                  item={item}
+                  deletePlan={() => deletePlan(item._id)}
+                />
+              )}
+            />
+          </View>
+        </View>
       </ScrollView>
       {loading && <Loader />}
+
+      <Modal
+        visible={isAddEventModalVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={"padding"} enabled>
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <TextInput
+                  placeholder="Plan Title"
+                  multiline
+                  numberOfLines={2}
+                  maxLength={100}
+                  value={title}
+                  style={styles.textInput}
+                  onChangeText={setTitle}
+                />
+                <TextInput
+                  placeholder="Plan Sub Title"
+                  multiline
+                  numberOfLines={2}
+                  maxLength={100}
+                  value={subTitle}
+                  style={styles.textInput}
+                  onChangeText={setSubTitle}
+                />
+                <TextInput
+                  placeholder="Plan Description"
+                  value={description}
+                  multiline
+                  numberOfLines={5}
+                  maxLength={300}
+                  style={styles.descriptionInput}
+                  onChangeText={setDescription}
+                />
+
+                <View style={styles.modalActions}>
+                  <Button
+                    mode="contained"
+                    onPress={savePlan}
+                    buttonColor="green"
+                  >
+                    Save Plan
+                  </Button>
+                  <Button mode="outlined" onPress={closeAddPlanModal}>
+                    Cancel
+                  </Button>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -320,5 +533,40 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     flex: 1,
     padding: 15,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "90%",
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+    elevation: 10,
+  },
+  textInput: {
+    marginVertical: 5,
+    padding: "3%",
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    textAlignVertical: "top",
+  },
+  descriptionInput: {
+    marginVertical: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    textAlignVertical: "top",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 15,
   },
 });
