@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Strides",
-    "slug": "Strides",
+    "name": "Leap",
+    "slug": "leap",
     "version": "1.0.2",
     "orientation": "portrait",
-    "scheme": "strides",
+    "scheme": "leap",
     "icon": "./assets/appIcon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splashScreen.png",
       "resizeMode": "contain",
-      "backgroundColor": "#3971c2"
+      "backgroundColor": "#3871c1"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.softwarepro.strides",
+      "bundleIdentifier": "com.softwarepro.leap",
       "buildNumber": "14",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -25,9 +25,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/appIcon.png",
-        "backgroundColor": "#3971c2"
+        "backgroundColor": "#3871c1"
       },
-      "package": "com.softwarepro.strides",
+      "package": "com.softwarepro.leap",
       "versionCode": 2,
       "permissions": [
         "android.permission.RECORD_AUDIO",

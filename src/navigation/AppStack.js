@@ -38,6 +38,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import VideoPlayer from "../screens/VideoPlayer";
 import Masterclass from "../screens/Masterclass";
 import Profile from "../screens/Profile";
+import Inbox from "../screens/Inbox";
+import Chat from "../screens/Chat";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -48,7 +50,7 @@ const Tabs = createBottomTabNavigator();
 const DRAWER_COLORS = {
   accent: "#f7a11f",
   accentLight: "#ffc107",
-  gradientStart: "#3971c2",
+  gradientStart: "#3871c1",
   gradientMiddle: "#2d5a9e",
   gradientEnd: "#1e3a5f",
   success: "#10b981",
@@ -62,6 +64,7 @@ const getIconForRoute = (routeName) => {
     tabs: { component: MaterialCommunityIcons, name: "view-dashboard-outline" },
     Sales: { component: Ionicons, name: "stats-chart-outline" },
     "My Agents": { component: Feather, name: "users" },
+    Inbox: { component: Ionicons, name: "mail-outline" },
     Profession: { component: Feather, name: "briefcase" },
     ChatCoach: { component: Ionicons, name: "chatbubbles-outline" },
     Profile: { component: Feather, name: "user" },
@@ -440,6 +443,7 @@ const DrawerNav = () => {
     { name: "Home", label: "Home" },
     { name: "tabs", label: "Overview" },
     { name: "Sales", label: "Sales Targets" },
+    { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];
 
@@ -503,6 +507,14 @@ const DrawerNav = () => {
         }}
       />
       <Drawer.Screen
+        name="Inbox"
+        component={Inbox}
+        options={{
+          drawerLabel: "Inbox",
+          title: "",
+        }}
+      />
+      <Drawer.Screen
         name="Profile"
         component={Profile}
         options={{
@@ -527,6 +539,7 @@ const ManagerDrawerNav = () => {
 
   const managerRoutes = [
     { name: "My Agents", label: "My Agents" },
+    { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];
 
@@ -570,6 +583,14 @@ const ManagerDrawerNav = () => {
         component={MyAgents}
         options={{
           drawerLabel: "My Agents",
+        }}
+      />
+      <Drawer.Screen
+        name="Inbox"
+        component={Inbox}
+        options={{
+          drawerLabel: "Inbox",
+          title: "",
         }}
       />
       <Drawer.Screen
@@ -708,6 +729,16 @@ export default AppStack = () => {
             name="Coach"
             component={CoachDrawer}
           />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="DailySchedule"
+            component={DailySchedule}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Annual Progress"
+            component={AnnualProgress}
+          />
         </>
       )}
       {role === "manager" && (
@@ -739,7 +770,7 @@ export default AppStack = () => {
                 </TouchableOpacity>
               ),
             }}
-            name="DailySchedule1"
+            name="DailySchedule"
             component={DailySchedule}
           />
         </>
@@ -754,6 +785,11 @@ export default AppStack = () => {
         options={{ headerShown: false }}
         name="VideoPlayer"
         component={VideoPlayer}
+      />
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="Chat"
+        component={Chat}
       />
     </Stack.Navigator>
   );

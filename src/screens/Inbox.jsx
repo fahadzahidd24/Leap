@@ -157,7 +157,7 @@ const Inbox = ({ navigation }) => {
             color="white"
             style={{ marginHorizontal: 3 }} // Increase horizontal margin for better spacing
           /> */}
-          {/* <MaterialCommunityIcons
+          <MaterialCommunityIcons
             onPress={() =>
               navigation.navigate(
                 role === "agent" ? "DailySchedule" : "My Agents"
@@ -167,7 +167,7 @@ const Inbox = ({ navigation }) => {
             name="calendar-month"
             size={27}
             color="white"
-          /> */}
+          />
           {/* <AntDesign
             name="message1"
             size={23}
@@ -188,7 +188,22 @@ const Inbox = ({ navigation }) => {
       <View style={styles.inboxContainerTop}>
         <FlatList
           data={chats}
+          style={styles.list}
+          contentContainerStyle={
+            chats.length === 0 ? styles.emptyListContent : styles.listContent
+          }
           keyExtractor={(item, index) => index.toString()}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateTitle}>No chats yet</Text>
+                <Text style={styles.emptyStateText}>
+                  Your conversations will appear here once someone sends a
+                  message.
+                </Text>
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => (
             <InboxComponent
               navigation={navigation}
@@ -236,9 +251,20 @@ const styles = StyleSheet.create({
   },
   inboxContainerTop: {
     width: "90%",
-    alignItems: "flex-end",
     marginTop: 15,
     marginHorizontal: "5%",
+    flex: 1,
+  },
+  list: {
+    width: "100%",
+  },
+  listContent: {
+    width: "100%",
+  },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   inboxContainer: {
     width: "100%",
@@ -260,8 +286,28 @@ const styles = StyleSheet.create({
   },
   leftSideView: {
     flexDirection: "row",
-    maxWidth:"80%",
+    maxWidth: "80%",
     alignItems: "center",
+  },
+  emptyState: {
+    width: "100%",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: theme.colors.secondary,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "white",
+    textAlign: "center",
+    lineHeight: 20,
   },
   rightSideView: {
     justifyContent: "center",

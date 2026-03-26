@@ -104,18 +104,19 @@ const AnnualProgress = () => {
               color="white"
               style={{ marginHorizontal: 3 }}
             /> */}
-            {/* <MaterialCommunityIcons
+            <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
               name="calendar-month"
               size={27}
               color="white"
-            /> */}
+            />
             {/* <MaterialCommunityIcons
               name="progress-check"
               size={28}
               style={{ marginHorizontal: 3 }}
               color="white"
+              onPress={() => navigation.navigate("Annual Progress")}
             /> */}
             {/* <Entypo
               name="dots-three-vertical"

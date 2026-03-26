@@ -218,13 +218,13 @@ const EffectivenessReport = () => {
               color="white"
               style={{ marginHorizontal: 3 }}
             /> */}
-            {/* <MaterialCommunityIcons
+            <MaterialCommunityIcons
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 3 }}
               name="calendar-month"
               size={27}
               color="white"
-            /> */}
+            />
             <MaterialCommunityIcons
               name="progress-check"
               onPress={() => navigation.navigate("Annual Progress")}

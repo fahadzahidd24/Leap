@@ -38,13 +38,14 @@ import { useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri } from "expo-auth-session";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { getMalaysianDate } from "../utils/currentDate&Day";
 
 const redirectTo = makeRedirectUri();
 const INITIAL_TIME = { hour: 9, minutes: 0 };
 
 const TimelineCalendarScreen = ({ route }) => {
+  const navigation = useNavigation();
   const { userId, state } = route?.params || {};
   const { token, _id, role } = useSelector((state) => state.User);
   const [events, setEvents] = useState([]);
@@ -346,6 +347,8 @@ const TimelineCalendarScreen = ({ route }) => {
           //   backgroundColor: "black",
         }}
       >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <MaterialCommunityIcons name="arrow-left" size={27} color="white" onPress={() => navigation.goBack()} />
         <Text
           style={{
             fontSize: 26,
@@ -355,9 +358,10 @@ const TimelineCalendarScreen = ({ route }) => {
             flexWrap: "wrap",
             color: theme.colors.secondary,
           }}
-        >
+          >
           Daily Schedule
         </Text>
+          </View>
         <View
           style={{
             flexDirection: "row",

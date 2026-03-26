@@ -429,17 +429,17 @@ const Activity = ({
               {/* <MaterialCommunityIcons name="youtube" size={27} color="black" /> */}
             </TouchableOpacity>
 
-            {/* <TouchableOpacity // Make EvilIcons touchable
+            <TouchableOpacity // Make EvilIcons touchable
               onPress={() => navigation.navigate("DailySchedule")}
               style={{ marginHorizontal: 2 }} // Add horizontal margin to space out the icon
             >
-              <EvilIcons name="calendar" size={35} color="black" />
+              {/* <EvilIcons name="calendar" size={35} color="black" /> */}
               <MaterialCommunityIcons
                 name="calendar-month"
                 size={27}
                 color="black"
               />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
 
             <TouchableOpacity // Make MaterialCommunityIcons touchable
               onPress={() => navigation.navigate("Annual Progress")}

@@ -181,13 +181,13 @@ const Home = ({ navigation }) => {
               navigation={navigation}
               routeName={"Agent"}
             />
-            {/* <Module
+            <Module
               bg={require("../../assets/2.png")}
               fg={require("../../assets/2a.png")}
               text={"Ask my coach"}
               navigation={navigation}
               routeName={"Coach"}
-            /> */}
+            />
             <Module
               bg={require("../../assets/3.png")}
               fg={require("../../assets/3a.png")}
