@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,6 +16,10 @@ import { theme } from "../constants/theme";
 import Loader from "../components/Loader";
 import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
+import {
+  getBadgesByKeys,
+  getLeaderboardBadgeMeta,
+} from "../constants/gamificationVisuals";
 import { setAgentLeaderboard } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
 
@@ -30,6 +35,11 @@ const GamificationLeaderboard = ({ navigation }) => {
   const dispatch = useDispatch();
   const [scopeType, setScopeType] = useState("company");
   const [loading, setLoading] = useState(true);
+  const leaderboardBadges = getBadgesByKeys([
+    "role_model_signal",
+    "execution_machine",
+    "rising_performer",
+  ]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -82,6 +92,22 @@ const GamificationLeaderboard = ({ navigation }) => {
         </View>
 
         <GamificationCard
+          title="Competitive Badges"
+          subtitle="The momentum marks to chase this week"
+        >
+          <View style={styles.badgeStrip}>
+            {leaderboardBadges.map((badge) => (
+              <View key={badge.key} style={styles.badgeStripCard}>
+                {badge.image ? (
+                  <Image source={badge.image} style={styles.badgeStripImage} />
+                ) : null}
+                <Text style={styles.badgeStripTitle}>{badge.title}</Text>
+              </View>
+            ))}
+          </View>
+        </GamificationCard>
+
+        <GamificationCard
           title="Weekly Rankings"
           subtitle={
             leaderboard?.weekKey
@@ -90,37 +116,45 @@ const GamificationLeaderboard = ({ navigation }) => {
           }
         >
           {leaderboard?.entries?.length ? (
-            leaderboard.entries.map((entry) => (
-              <View key={`${entry.userId}-${entry.rank}`} style={styles.row}>
-                <View style={styles.rankCircle}>
-                  <Text style={styles.rankCircleText}>#{entry.rank}</Text>
+            leaderboard.entries.map((entry) => {
+              const rankBadge = getLeaderboardBadgeMeta(entry.rank);
+
+              return (
+                <View key={`${entry.userId}-${entry.rank}`} style={styles.row}>
+                  {rankBadge?.image ? (
+                    <Image source={rankBadge.image} style={styles.rankBadgeImage} />
+                  ) : (
+                    <View style={styles.rankCircle}>
+                      <Text style={styles.rankCircleText}>#{entry.rank}</Text>
+                    </View>
+                  )}
+                  <View style={styles.rowText}>
+                    <Text style={styles.rowTitle}>{entry.fullName}</Text>
+                    <Text style={styles.rowSubtitle}>
+                      {entry.label} • {entry.score} pts
+                    </Text>
+                  </View>
+                  <View style={styles.rowMeta}>
+                    <Text style={styles.scoreText}>{entry.salesCount || 0} sales</Text>
+                    <Text
+                      style={[
+                        styles.movementText,
+                        {
+                          color:
+                            entry.movement > 0
+                              ? theme.colors.success
+                              : entry.movement < 0
+                              ? theme.colors.danger
+                              : theme.colors.textMuted,
+                        },
+                      ]}
+                    >
+                      {entry.movement > 0 ? `+${entry.movement}` : entry.movement || 0}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.rowText}>
-                  <Text style={styles.rowTitle}>{entry.fullName}</Text>
-                  <Text style={styles.rowSubtitle}>
-                    {entry.label} • {entry.score} pts
-                  </Text>
-                </View>
-                <View style={styles.rowMeta}>
-                  <Text style={styles.scoreText}>{entry.salesCount || 0} sales</Text>
-                  <Text
-                    style={[
-                      styles.movementText,
-                      {
-                        color:
-                          entry.movement > 0
-                            ? theme.colors.success
-                            : entry.movement < 0
-                            ? theme.colors.danger
-                            : theme.colors.textMuted,
-                      },
-                    ]}
-                  >
-                    {/* {entry.movement > 0 ? `+${entry.movement}` : entry.movement || 0} */}
-                  </Text>
-                </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <GamificationEmptyState
               title="No ranked activity yet this week"
@@ -184,12 +218,41 @@ const styles = StyleSheet.create({
   scopePillTextActive: {
     color: theme.colors.background,
   },
+  badgeStrip: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  badgeStripCard: {
+    width: "31%",
+    backgroundColor: "rgba(56, 113, 193, 0.06)",
+    borderRadius: 14,
+    padding: 10,
+    alignItems: "center",
+  },
+  badgeStripImage: {
+    width: 48,
+    height: 48,
+    resizeMode: "contain",
+    marginBottom: 8,
+  },
+  badgeStripTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    color: theme.colors.textPrimary,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(100, 116, 139, 0.12)",
+  },
+  rankBadgeImage: {
+    width: 42,
+    height: 42,
+    resizeMode: "contain",
+    marginRight: 12,
   },
   rankCircle: {
     width: 40,

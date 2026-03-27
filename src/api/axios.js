@@ -6,10 +6,10 @@ import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
 import { resetGamification } from "../redux/features/gamificationSlice";
 
-// const baseURL = "https://stride-api.leaptechsolutions.com/api";
-// const publicURL = "https://stride-api.leaptechsolutions.com/public";
-export const baseURL = "https://gentle-cub-positively.ngrok-free.app/api";
-const publicURL = "https://gentle-cub-positively.ngrok-free.app/public";
+const baseURL = "https://leaptechsolutions.com/api";
+const publicURL = "https://leaptechsolutions.com/public";
+// export const baseURL = "https://gentle-cub-positively.ngrok-free.app/api";
+// const publicURL = "https://gentle-cub-positively.ngrok-free.app/public";
 
 const publicApi = axios.create({
   baseURL,

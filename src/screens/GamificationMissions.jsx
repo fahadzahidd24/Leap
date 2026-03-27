@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -16,56 +17,87 @@ import Loader from "../components/Loader";
 import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
+  getBadgesByKeys,
+  getMissionBadgeMeta,
+  MISSION_SHOWCASE_BADGE_KEYS,
+} from "../constants/gamificationVisuals";
+import {
   setAgentDailyMissions,
   setAgentWeeklyMissions,
 } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
 
-const MissionList = ({ title, subtitle, missions, progressPercent }) => {
+const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) => {
+  const showcaseBadges = getBadgesByKeys(badgeKeys);
+
   return (
     <GamificationCard
       title={title}
       subtitle={`${progressPercent ?? 0}% complete${subtitle ? ` • ${subtitle}` : ""}`}
     >
+      <View style={styles.showcaseBadgeRow}>
+        {showcaseBadges.map((badge) => (
+          <View key={badge.key} style={styles.showcaseBadgeCard}>
+            {badge.image ? (
+              <Image source={badge.image} style={styles.showcaseBadgeImage} />
+            ) : null}
+            <Text style={styles.showcaseBadgeText}>{badge.title}</Text>
+          </View>
+        ))}
+      </View>
       {missions?.length ? (
-        missions.map((mission) => (
-          <View key={mission.key} style={styles.missionCard}>
-            <View style={styles.missionHeader}>
-              <Text style={styles.missionTitle}>{mission.title}</Text>
-              <View
-                style={[
-                  styles.rewardPill,
-                  mission.completed && styles.rewardPillDone,
-                ]}
-              >
-                <Text
+        missions.map((mission, index) => {
+          const missionBadge = getMissionBadgeMeta(mission, index);
+
+          return (
+            <View key={mission.key} style={styles.missionCard}>
+              <View style={styles.missionHeader}>
+                <View style={styles.missionIdentity}>
+                  {missionBadge?.image ? (
+                    <Image source={missionBadge.image} style={styles.missionBadgeImage} />
+                  ) : null}
+                  <View style={styles.missionTextBlock}>
+                    <Text style={styles.missionTitle}>{mission.title}</Text>
+                    <Text style={styles.missionMeta}>
+                      {mission.progressLabel} • {mission.type}
+                    </Text>
+                  </View>
+                </View>
+                <View
                   style={[
-                    styles.rewardPillText,
-                    mission.completed && styles.rewardPillDoneText,
+                    styles.rewardPill,
+                    mission.completed && styles.rewardPillDone,
                   ]}
                 >
-                  {mission.completed ? "Completed" : `${mission.rewardPoints} pts`}
-                </Text>
+                  <Text
+                    style={[
+                      styles.rewardPillText,
+                      mission.completed && styles.rewardPillDoneText,
+                    ]}
+                  >
+                    {mission.completed ? "Completed" : `${mission.rewardPoints} pts`}
+                  </Text>
+                </View>
+              </View>
+              {!!missionBadge?.description && (
+                <Text style={styles.missionBadgeHint}>{missionBadge.description}</Text>
+              )}
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${Math.min(
+                        100,
+                        mission.target ? (mission.progress / mission.target) * 100 : 0
+                      )}%`,
+                    },
+                  ]}
+                />
               </View>
             </View>
-            <Text style={styles.missionMeta}>
-              {mission.progressLabel} • {mission.type}
-            </Text>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${Math.min(
-                      100,
-                      mission.target ? (mission.progress / mission.target) * 100 : 0
-                    )}%`,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        ))
+          );
+        })
       ) : (
         <GamificationEmptyState
           title="No missions yet"
@@ -124,6 +156,7 @@ const GamificationMissions = ({ navigation }) => {
           subtitle="Today’s execution priorities"
           missions={dailyMissions?.missions}
           progressPercent={dailyMissions?.progressPercent}
+          badgeKeys={MISSION_SHOWCASE_BADGE_KEYS.daily}
         />
 
         <MissionList
@@ -131,6 +164,7 @@ const GamificationMissions = ({ navigation }) => {
           subtitle="Momentum goals for the week"
           missions={weeklyMissions?.missions}
           progressPercent={weeklyMissions?.progressPercent}
+          badgeKeys={MISSION_SHOWCASE_BADGE_KEYS.weekly}
         />
       </ScrollView>
       {loading && <Loader />}
@@ -158,6 +192,30 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "white",
   },
+  showcaseBadgeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  showcaseBadgeCard: {
+    width: "31%",
+    backgroundColor: "rgba(56, 113, 193, 0.06)",
+    borderRadius: 12,
+    padding: 8,
+    alignItems: "center",
+  },
+  showcaseBadgeImage: {
+    width: 42,
+    height: 42,
+    resizeMode: "contain",
+    marginBottom: 6,
+  },
+  showcaseBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    textAlign: "center",
+    color: theme.colors.textPrimary,
+  },
   missionCard: {
     backgroundColor: "rgba(56, 113, 193, 0.06)",
     borderRadius: 14,
@@ -170,17 +228,36 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  missionTitle: {
+  missionIdentity: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
+    paddingRight: 12,
+  },
+  missionBadgeImage: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
+    marginRight: 10,
+  },
+  missionTextBlock: {
+    flex: 1,
+  },
+  missionTitle: {
     fontSize: 15,
     fontWeight: "700",
     color: theme.colors.textPrimary,
-    paddingRight: 12,
   },
   missionMeta: {
     fontSize: 12,
     color: theme.colors.textMuted,
     marginBottom: 10,
+  },
+  missionBadgeHint: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    marginBottom: 10,
+    lineHeight: 18,
   },
   rewardPill: {
     borderRadius: 999,

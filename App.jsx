@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { Provider } from "react-redux";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
-import { View, Text, ActivityIndicator, Alert, Platform } from "react-native";
+import { View, Text, ActivityIndicator, Alert, Platform, AppState } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
@@ -22,12 +22,15 @@ import * as Notifications from "expo-notifications";
 import {
   resetGamification,
   setAgentDailyMissions,
+  setAgentLeaderboard,
   setAgentNotifications,
   setAgentScorecard,
+  setAgentTier,
   setExpoDeviceState,
 } from "./src/redux/features/gamificationSlice";
 import { gamificationApi } from "./src/api/gamification";
 import { registerGamificationDevice } from "./src/utils/registerGamificationDevice";
+import { buildGamificationNotification } from "./src/utils/gamificationNotifications";
 import useSocket from "./src/hooks/useSocket";
 LogBox.ignoreAllLogs();
 
@@ -47,6 +50,8 @@ function StartUp() {
   const [loading, setLoading] = useState(true);
   const appOpenTrackedRef = useRef(false);
   const locationSubscriptionRef = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
+  const lastMotivationNotificationAtRef = useRef(0);
 
   const loadUser = useCallback(async () => {
     try {
@@ -158,6 +163,91 @@ function StartUp() {
         console.error("Error registering gamification device:", error);
       });
   }, [dispatch, loading, user?.token]);
+
+  useEffect(() => {
+    const ensureNotificationPermission = async () => {
+      const permissions = await Notifications.getPermissionsAsync();
+      let status = permissions.status;
+
+      if (status === "undetermined") {
+        const requested = await Notifications.requestPermissionsAsync();
+        status = requested.status;
+      }
+
+      return status === "granted";
+    };
+
+    const maybeShowMotivationNotification = async () => {
+      if (!user?.token || loading) {
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastMotivationNotificationAtRef.current < 10000) {
+        return;
+      }
+
+      try {
+        const granted = await ensureNotificationPermission();
+        if (!granted) {
+          return;
+        }
+
+        const [scorecard, dailyMissions, leaderboard, tier] = await Promise.all([
+          gamificationApi.getScorecard(user.token).catch(() => null),
+          gamificationApi.getDailyMissions(user.token).catch(() => ({
+            progressPercent: 0,
+            missions: [],
+          })),
+          gamificationApi.getLeaderboard(user.token).catch(() => null),
+          gamificationApi.getTier(user.token).catch(() => null),
+        ]);
+
+        dispatch(setAgentScorecard(scorecard));
+        dispatch(setAgentDailyMissions(dailyMissions));
+        dispatch(setAgentLeaderboard(leaderboard));
+        dispatch(setAgentTier(tier));
+
+        const message = buildGamificationNotification({
+          user,
+          scorecard,
+          dailyMissions,
+          leaderboard,
+          tier,
+        });
+
+        lastMotivationNotificationAtRef.current = now;
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: message.title,
+            body: message.body,
+            sound: "default",
+          },
+          trigger: null,
+        });
+      } catch (error) {
+        console.error("Error showing motivation notification:", error);
+      }
+    };
+
+    maybeShowMotivationNotification();
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      const wasBackgrounded =
+        appStateRef.current === "background" || appStateRef.current === "inactive";
+
+      appStateRef.current = nextAppState;
+
+      if (wasBackgrounded && nextAppState === "active") {
+        maybeShowMotivationNotification();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [dispatch, loading, user?.fullName, user?.token]);
 
   useEffect(() => {
     let isMounted = true;

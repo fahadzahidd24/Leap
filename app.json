@@ -2,7 +2,7 @@
   "expo": {
     "name": "Leap",
     "slug": "leap",
-    "version": "1.0.2",
+    "version": "35.0.0",
     "orientation": "portrait",
     "scheme": "leap",
     "icon": "./assets/appIcon.png",
@@ -14,8 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.softwarepro.leap",
-      "buildNumber": "14",
+      "bundleIdentifier": "com.gitsa.Leap",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized content and improve your app experience."
@@ -27,11 +27,13 @@
         "foregroundImage": "./assets/appIcon.png",
         "backgroundColor": "#3871c1"
       },
-      "package": "com.softwarepro.leap",
+      "package": "com.gitsa.Leap",
       "versionCode": 2,
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "com.google.android.gms.permission.AD_ID"
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -59,11 +61,11 @@
         }
       ]
     ],
+    "owner": "goaler1",
     "extra": {
       "eas": {
-        "projectId": "91bfd0ea-c748-4c90-b1d9-79b2cbbac241"
+        "projectId": "3102d521-6fc9-4a0d-89f6-e2e4594a4b18"
       }
-    },
-    "owner": "fahadzahidd24"
+    }
   }
 }

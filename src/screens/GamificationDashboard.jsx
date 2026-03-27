@@ -1,4 +1,5 @@
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -20,6 +21,12 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
+import {
+  DASHBOARD_SHOWCASE_BADGE_KEYS,
+  getBadgesByKeys,
+  getLeaderboardBadgeMeta,
+  getMissionBadgeMeta,
+} from "../constants/gamificationVisuals";
 import {
   setAgentDailyMissions,
   setAgentLeaderboard,
@@ -100,6 +107,7 @@ const GamificationDashboard = ({ navigation }) => {
   const weeklyTrend = scorecard?.weekly?.trend || [];
   const dailyGoals = scorecard?.daily?.goals || {};
   const dailyRatios = scorecard?.daily?.ratios || {};
+  const showcaseBadges = getBadgesByKeys(DASHBOARD_SHOWCASE_BADGE_KEYS);
 
   const encouragementText = useMemo(() => {
     if (scorecard?.daily?.score > 0) {
@@ -295,6 +303,26 @@ const GamificationDashboard = ({ navigation }) => {
           </GamificationCard>
 
           <GamificationCard
+            title="Badges In Play"
+            subtitle="Keep these milestones moving"
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.badgeRail}
+            >
+              {showcaseBadges.map((badge) => (
+                <View key={badge.key} style={styles.showcaseBadgeCard}>
+                  {badge.image ? (
+                    <Image source={badge.image} style={styles.showcaseBadgeImage} />
+                  ) : null}
+                  <Text style={styles.showcaseBadgeTitle}>{badge.title}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </GamificationCard>
+
+          <GamificationCard
             title="Today’s Missions"
             subtitle={`${dailyMissions?.progressPercent ?? 0}% complete`}
             rightContent={
@@ -304,31 +332,38 @@ const GamificationDashboard = ({ navigation }) => {
             }
           >
             {dailyMissions?.missions?.length ? (
-              dailyMissions.missions.slice(0, 3).map((mission) => (
-                <View key={mission.key} style={styles.listRow}>
-                  <View style={styles.listRowText}>
-                    <Text style={styles.listRowTitle}>{mission.title}</Text>
-                    <Text style={styles.listRowSubtitle}>
-                      {mission.progressLabel} • {mission.rewardPoints} pts
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      mission.completed && styles.statusPillSuccess,
-                    ]}
-                  >
-                    <Text
+              dailyMissions.missions.slice(0, 3).map((mission, index) => {
+                const missionBadge = getMissionBadgeMeta(mission, index);
+
+                return (
+                  <View key={mission.key} style={styles.listRow}>
+                    {missionBadge?.image ? (
+                      <Image source={missionBadge.image} style={styles.inlineBadgeImage} />
+                    ) : null}
+                    <View style={styles.listRowText}>
+                      <Text style={styles.listRowTitle}>{mission.title}</Text>
+                      <Text style={styles.listRowSubtitle}>
+                        {mission.progressLabel} • {mission.rewardPoints} pts
+                      </Text>
+                    </View>
+                    <View
                       style={[
-                        styles.statusPillText,
-                        mission.completed && styles.statusPillTextSuccess,
+                        styles.statusPill,
+                        mission.completed && styles.statusPillSuccess,
                       ]}
                     >
-                      {mission.completed ? "Done" : "Active"}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.statusPillText,
+                          mission.completed && styles.statusPillTextSuccess,
+                        ]}
+                      >
+                        {mission.completed ? "Done" : "Active"}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             ) : (
               <GamificationEmptyState
                 title="No missions yet"
@@ -350,27 +385,38 @@ const GamificationDashboard = ({ navigation }) => {
           >
             {topLeaderboardEntries.length ? (
               <>
-                {topLeaderboardEntries.map((entry) => (
-                  <View
-                    key={`${entry.userId}-${entry.rank}`}
-                    style={styles.listRow}
-                  >
-                    <View style={styles.rankBadge}>
-                      <Text style={styles.rankBadgeText}>#{entry.rank}</Text>
-                    </View>
-                    <View style={styles.listRowText}>
-                      <Text style={styles.listRowTitle}>{entry.fullName}</Text>
-                      <Text style={styles.listRowSubtitle}>
-                        {entry.label} • {entry.score} pts
+                {topLeaderboardEntries.map((entry) => {
+                  const leaderboardBadge = getLeaderboardBadgeMeta(entry.rank);
+
+                  return (
+                    <View
+                      key={`${entry.userId}-${entry.rank}`}
+                      style={styles.listRow}
+                    >
+                      {leaderboardBadge?.image ? (
+                        <Image
+                          source={leaderboardBadge.image}
+                          style={styles.inlineBadgeImage}
+                        />
+                      ) : (
+                        <View style={styles.rankBadge}>
+                          <Text style={styles.rankBadgeText}>#{entry.rank}</Text>
+                        </View>
+                      )}
+                      <View style={styles.listRowText}>
+                        <Text style={styles.listRowTitle}>{entry.fullName}</Text>
+                        <Text style={styles.listRowSubtitle}>
+                          {entry.label} • {entry.score} pts
+                        </Text>
+                      </View>
+                      <Text style={styles.movementText}>
+                        {entry.movement > 0
+                          ? `+${entry.movement}`
+                          : entry.movement || 0}
                       </Text>
                     </View>
-                    <Text style={styles.movementText}>
-                      {entry.movement > 0
-                        ? `+${entry.movement}`
-                        : entry.movement || 0}
-                    </Text>
-                  </View>
-                ))}
+                  );
+                })}
                 {leaderboard?.currentUserRank ? (
                   <View style={[styles.listRow, styles.currentRankRow]}>
                     <Text style={styles.currentRankText}>
@@ -569,6 +615,29 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },
+  badgeRail: {
+    paddingRight: 8,
+  },
+  showcaseBadgeCard: {
+    width: 100,
+    backgroundColor: "rgba(56, 113, 193, 0.06)",
+    borderRadius: 14,
+    padding: 10,
+    marginRight: 10,
+    alignItems: "center",
+  },
+  showcaseBadgeImage: {
+    width: 54,
+    height: 54,
+    resizeMode: "contain",
+    marginBottom: 8,
+  },
+  showcaseBadgeTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
+    textAlign: "center",
+  },
   linkText: {
     color: theme.colors.background,
     fontWeight: "700",
@@ -582,6 +651,12 @@ const styles = StyleSheet.create({
   },
   listRowText: {
     flex: 1,
+  },
+  inlineBadgeImage: {
+    width: 38,
+    height: 38,
+    resizeMode: "contain",
+    marginRight: 10,
   },
   listRowTitle: {
     fontSize: 14,

@@ -30,6 +30,7 @@ import {
   setAgentTier,
 } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
+import { getTierMeta } from "../constants/gamificationVisuals";
 
 const preferenceRows = [
   { key: "pushEnabled", label: "Push notifications" },
@@ -63,6 +64,9 @@ const Profile = ({ navigation }) => {
   const [deleting, setDeleting] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [localPreferences, setLocalPreferences] = useState(defaultPreferences);
+  const currentTierMeta = getTierMeta(tier?.currentTier);
+  const nextTierMeta = getTierMeta(tier?.nextTier);
+  const formattedTierProgress = Number(tier?.progressPercent || 0).toFixed(1);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -280,14 +284,27 @@ const Profile = ({ navigation }) => {
           {tier ? (
             <>
               <View style={styles.tierRow}>
-                <View>
-                  <Text style={styles.tierLabel}>Current</Text>
-                  <Text style={styles.tierValue}>{tier.currentTier}</Text>
+                <View style={styles.tierIdentity}>
+                  {currentTierMeta?.image ? (
+                    <Image source={currentTierMeta.image} style={styles.tierImage} />
+                  ) : null}
+                  <View style={styles.tierTextBlock}>
+                    <Text style={styles.tierLabel}>Current</Text>
+                    <Text style={styles.tierValue}>{tier.currentTier}</Text>
+                  </View>
                 </View>
                 <View style={styles.tierAlignRight}>
+                  {nextTierMeta?.image ? (
+                    <Image source={nextTierMeta.image} style={styles.nextTierImage} />
+                  ) : null}
                   <Text style={styles.tierLabel}>Lifetime score</Text>
                   <Text style={styles.tierValue}>{tier.lifetimeScore ?? 0}</Text>
                 </View>
+              </View>
+              <View style={styles.nextTierPill}>
+                <Text style={styles.nextTierPillText}>
+                  {tier.nextTier ? `Next unlock: ${tier.nextTier}` : "Top tier unlocked"}
+                </Text>
               </View>
               <View style={styles.progressTrack}>
                 <View
@@ -298,7 +315,7 @@ const Profile = ({ navigation }) => {
                 />
               </View>
               <Text style={styles.progressText}>
-                {tier.progressPercent ?? 0}% progress toward {tier.nextTier || "the next tier"}
+                {formattedTierProgress}% progress toward {tier.nextTier || "the next tier"}
               </Text>
             </>
           ) : (
@@ -563,10 +580,44 @@ const styles = StyleSheet.create({
   tierRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 14,
+  },
+  tierIdentity: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    paddingRight: 12,
+  },
+  tierImage: {
+    width: 64,
+    height: 64,
+    resizeMode: "contain",
+    marginRight: 12,
+  },
+  tierTextBlock: {
+    flex: 1,
   },
   tierAlignRight: {
     alignItems: "flex-end",
+  },
+  nextTierImage: {
+    width: 32,
+    height: 32,
+    resizeMode: "contain",
+    marginBottom: 6,
+  },
+  nextTierPill: {
+    backgroundColor: "rgba(247, 161, 31, 0.12)",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  nextTierPillText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
   },
   tierLabel: {
     fontSize: 12,

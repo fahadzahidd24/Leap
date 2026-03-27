@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "https://gentle-cub-positively.ngrok-free.app";
+const SOCKET_URL = "https://leaptechsolutions.com";
 
 let socketInstance;
 

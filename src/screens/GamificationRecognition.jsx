@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,6 +16,10 @@ import { theme } from "../constants/theme";
 import Loader from "../components/Loader";
 import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
+import {
+  getBadgeMeta,
+  getTierMeta,
+} from "../constants/gamificationVisuals";
 import {
   setAgentBadges,
   setAgentRecognition,
@@ -42,6 +47,9 @@ const GamificationRecognition = ({ navigation }) => {
   );
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+  const currentTierMeta = getTierMeta(tier?.currentTier);
+  const nextTierMeta = getTierMeta(tier?.nextTier);
+  const formattedTierProgress = Number(tier?.progressPercent || 0).toFixed(1);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -68,8 +76,14 @@ const GamificationRecognition = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.background}
+      />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
@@ -80,19 +94,36 @@ const GamificationRecognition = ({ navigation }) => {
 
         <GamificationCard
           title="Tier Progress"
-          subtitle={tier?.nextTier ? `Next tier: ${tier.nextTier}` : "Your current level"}
+          subtitle={
+            tier?.nextTier ? `Next tier: ${tier.nextTier}` : "Your current level"
+          }
         >
           {tier ? (
             <>
               <View style={styles.tierRow}>
-                <View>
-                  <Text style={styles.tierLabel}>Current tier</Text>
-                  <Text style={styles.tierValue}>{tier.currentTier}</Text>
+                <View style={styles.tierIdentity}>
+                  {currentTierMeta?.image ? (
+                    <Image source={currentTierMeta.image} style={styles.tierImage} />
+                  ) : null}
+                  <View style={styles.tierTextBlock}>
+                    <Text style={styles.tierLabel}>Current tier</Text>
+                    <Text style={styles.tierValue}>{tier.currentTier}</Text>
+                  </View>
                 </View>
                 <View style={styles.tierScoreBlock}>
+                  {nextTierMeta?.image ? (
+                    <Image source={nextTierMeta.image} style={styles.nextTierImage} />
+                  ) : null}
                   <Text style={styles.tierLabel}>Lifetime score</Text>
                   <Text style={styles.tierValue}>{tier.lifetimeScore ?? 0}</Text>
                 </View>
+              </View>
+              <View style={styles.nextTierBanner}>
+                <Text style={styles.nextTierBannerText}>
+                  {tier.nextTier
+                    ? `Next unlock: ${tier.nextTier}`
+                    : "Top tier unlocked"}
+                </Text>
               </View>
               <View style={styles.progressTrack}>
                 <View
@@ -103,7 +134,8 @@ const GamificationRecognition = ({ navigation }) => {
                 />
               </View>
               <Text style={styles.progressText}>
-                {tier.progressPercent ?? 0}% of the way to {tier.nextTier || "your next tier"}
+                {formattedTierProgress}% of the way to{" "}
+                {tier.nextTier || "your next tier"}
               </Text>
             </>
           ) : (
@@ -117,17 +149,39 @@ const GamificationRecognition = ({ navigation }) => {
         <GamificationCard title="Badges" subtitle="Recently earned milestones">
           {badges?.length ? (
             <View style={styles.badgeGrid}>
-              {badges.slice(0, 8).map((badge, index) => (
-                <View key={`${badge.badgeKey}-${index}`} style={styles.badgeCard}>
-                  <View style={styles.badgeIcon}>
-                    <Ionicons name="ribbon-outline" size={22} color={theme.colors.warning} />
+              {badges.slice(0, 8).map((badge, index) => {
+                const badgeMeta = getBadgeMeta(
+                  badge.badgeKey,
+                  badge.badgeTitle,
+                  badge.badgeCategory
+                );
+
+                return (
+                  <View key={`${badge.badgeKey}-${index}`} style={styles.badgeCard}>
+                    {badgeMeta.image ? (
+                      <Image source={badgeMeta.image} style={styles.badgeImage} />
+                    ) : (
+                      <View style={styles.badgeIcon}>
+                        <Ionicons
+                          name="ribbon-outline"
+                          size={22}
+                          color={theme.colors.warning}
+                        />
+                      </View>
+                    )}
+                    <Text style={styles.badgeTitle}>{badgeMeta.title}</Text>
+                    {!!badgeMeta.description && (
+                      <Text style={styles.badgeDescription}>
+                        {badgeMeta.description}
+                      </Text>
+                    )}
+                    <Text style={styles.badgeMeta}>
+                      {(badgeMeta.category || "Milestone").replace(/_/g, " ")} •{" "}
+                      {formatDate(badge.awardedAt)}
+                    </Text>
                   </View>
-                  <Text style={styles.badgeTitle}>{badge.badgeTitle}</Text>
-                  <Text style={styles.badgeMeta}>
-                    {badge.badgeCategory || "Milestone"} • {formatDate(badge.awardedAt)}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
           ) : (
             <GamificationEmptyState
@@ -139,22 +193,37 @@ const GamificationRecognition = ({ navigation }) => {
 
         <GamificationCard title="Recognition Timeline" subtitle="Your latest wins">
           {recognition?.feed?.length ? (
-            recognition.feed.map((item, index) => (
-              <View key={`${item.title || item.message}-${index}`} style={styles.timelineRow}>
-                <View style={styles.timelineDot} />
-                <View style={styles.timelineText}>
-                  <Text style={styles.timelineTitle}>
-                    {item.title || item.badgeTitle || item.type || "Recognition"}
-                  </Text>
-                  <Text style={styles.timelineMeta}>
-                    {item.body || item.message || "Momentum unlocked"}
-                  </Text>
-                  <Text style={styles.timelineDate}>
-                    {formatDate(item.awardedAt || item.createdAt || item.date)}
-                  </Text>
+            recognition.feed.map((item, index) => {
+              const badgeMeta = getBadgeMeta(
+                item.badgeKey,
+                item.title || item.badgeTitle,
+                item.badgeCategory
+              );
+
+              return (
+                <View key={`${item.title || item.message}-${index}`} style={styles.timelineRow}>
+                  {badgeMeta.image ? (
+                    <Image source={badgeMeta.image} style={styles.timelineImage} />
+                  ) : (
+                    <View style={styles.timelineDot} />
+                  )}
+                  <View style={styles.timelineText}>
+                    <Text style={styles.timelineTitle}>
+                      {badgeMeta.title || item.type || "Recognition"}
+                    </Text>
+                    <Text style={styles.timelineMeta}>
+                      {badgeMeta.description ||
+                        item.body ||
+                        item.message ||
+                        "Momentum unlocked"}
+                    </Text>
+                    <Text style={styles.timelineDate}>
+                      {formatDate(item.awardedAt || item.createdAt || item.date)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <GamificationEmptyState
               title="No recognitions yet"
@@ -163,18 +232,43 @@ const GamificationRecognition = ({ navigation }) => {
           )}
         </GamificationCard>
 
-        <GamificationCard title="Recognition Wall" subtitle="Celebrate company-wide highlights">
+        <GamificationCard
+          title="Recognition Wall"
+          subtitle="Celebrate company-wide highlights"
+        >
           {recognition?.wall?.length ? (
-            recognition.wall.map((item, index) => (
-              <View key={`${item.title || item.message}-${index}`} style={styles.wallCard}>
-                <Text style={styles.wallTitle}>
-                  {item.fullName || item.userName || item.title || "Team recognition"}
-                </Text>
-                <Text style={styles.wallMeta}>
-                  {item.body || item.message || item.badgeTitle || "Achievement unlocked"}
-                </Text>
-              </View>
-            ))
+            recognition.wall.map((item, index) => {
+              const badgeMeta = getBadgeMeta(
+                item.badgeKey,
+                item.title || item.badgeTitle,
+                item.badgeCategory
+              );
+
+              return (
+                <View key={`${item.title || item.message}-${index}`} style={styles.wallCard}>
+                  <View style={styles.wallHeader}>
+                    {badgeMeta.image ? (
+                      <Image source={badgeMeta.image} style={styles.wallImage} />
+                    ) : null}
+                    <View style={styles.wallHeaderText}>
+                      <Text style={styles.wallTitle}>
+                        {item.fullName || item.userName || badgeMeta.title || "Team recognition"}
+                      </Text>
+                      <Text style={styles.wallMeta}>
+                        {badgeMeta.title || "Achievement unlocked"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.wallBody}>
+                    {badgeMeta.description ||
+                      item.body ||
+                      item.message ||
+                      item.badgeTitle ||
+                      "Achievement unlocked"}
+                  </Text>
+                </View>
+              );
+            })
           ) : (
             <GamificationEmptyState
               title="Recognition wall is quiet"
@@ -211,11 +305,45 @@ const styles = StyleSheet.create({
   tierRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginBottom: 14,
+  },
+  tierIdentity: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    paddingRight: 12,
+  },
+  tierImage: {
+    width: 68,
+    height: 68,
+    resizeMode: "contain",
+    marginRight: 12,
+  },
+  tierTextBlock: {
+    flex: 1,
   },
   tierScoreBlock: {
     alignItems: "flex-end",
+  },
+  nextTierImage: {
+    width: 34,
+    height: 34,
+    resizeMode: "contain",
+    alignSelf: "flex-end",
+    marginBottom: 4,
+  },
+  nextTierBanner: {
+    backgroundColor: "rgba(247, 161, 31, 0.12)",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  nextTierBannerText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
   },
   tierLabel: {
     fontSize: 12,
@@ -255,6 +383,13 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
   },
+  badgeImage: {
+    width: 72,
+    height: 72,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 10,
+  },
   badgeIcon: {
     width: 40,
     height: 40,
@@ -270,6 +405,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: 4,
   },
+  badgeDescription: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    lineHeight: 18,
+    marginBottom: 6,
+  },
   badgeMeta: {
     fontSize: 12,
     color: theme.colors.textMuted,
@@ -278,6 +419,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 14,
+  },
+  timelineImage: {
+    width: 36,
+    height: 36,
+    resizeMode: "contain",
+    marginRight: 10,
+    marginTop: 2,
   },
   timelineDot: {
     width: 10,
@@ -311,6 +459,19 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
+  wallHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  wallImage: {
+    width: 42,
+    height: 42,
+    resizeMode: "contain",
+    marginRight: 10,
+  },
+  wallHeaderText: {
+    flex: 1,
+  },
   wallTitle: {
     fontSize: 14,
     fontWeight: "700",
@@ -320,6 +481,12 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 12,
     color: theme.colors.textMuted,
+  },
+  wallBody: {
+    marginTop: 10,
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    lineHeight: 18,
   },
 });
 

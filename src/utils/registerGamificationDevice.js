@@ -7,6 +7,52 @@ import * as Crypto from "expo-crypto";
 import { gamificationApi } from "../api/gamification";
 
 const DEVICE_ID_KEY = "gamification-device-id";
+const EXPERIENCE_NOT_FOUND_CODE = "EXPERIENCE_NOT_FOUND";
+
+const getExperienceId = () => {
+  const owner = Constants?.expoConfig?.owner;
+  const slug = Constants?.expoConfig?.slug;
+
+  if (!owner || !slug) {
+    return null;
+  }
+
+  return `@${owner}/${slug}`;
+};
+
+const getExpoPushToken = async () => {
+  const projectId = Constants?.easConfig?.projectId;
+  const experienceId = getExperienceId();
+
+  try {
+    if (projectId) {
+      const tokenResponse = await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+
+      return tokenResponse?.data || null;
+    }
+  } catch (error) {
+    const responseBody = String(error?.message || "");
+    const shouldRetryWithExperience =
+      responseBody.includes(EXPERIENCE_NOT_FOUND_CODE) && !!experienceId;
+
+    if (!shouldRetryWithExperience) {
+      throw error;
+    }
+  }
+
+  if (experienceId) {
+    const tokenResponse = await Notifications.getExpoPushTokenAsync({
+      experienceId,
+    });
+
+    return tokenResponse?.data || null;
+  }
+
+  const tokenResponse = await Notifications.getExpoPushTokenAsync();
+  return tokenResponse?.data || null;
+};
 
 export const registerGamificationDevice = async (token) => {
   const permissions = await Notifications.getPermissionsAsync();
@@ -27,15 +73,7 @@ export const registerGamificationDevice = async (token) => {
   }
 
   if (status === "granted" && Device.isDevice) {
-    const projectId =
-      Constants?.expoConfig?.extra?.eas?.projectId ||
-      Constants?.easConfig?.projectId;
-
-    const tokenResponse = await Notifications.getExpoPushTokenAsync({
-      projectId,
-    });
-
-    expoPushToken = tokenResponse?.data || null;
+    expoPushToken = await getExpoPushToken();
 
     if (expoPushToken) {
       await gamificationApi.registerExpoDevice(token, {
