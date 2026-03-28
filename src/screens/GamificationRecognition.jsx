@@ -40,6 +40,11 @@ const formatDate = (value) => {
   return date.toLocaleDateString("en-GB");
 };
 
+const formatCategoryLabel = (value) => {
+  const normalized = (value || "Milestone").replace(/_/g, " ").toLowerCase();
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
 const GamificationRecognition = ({ navigation }) => {
   const token = useSelector((state) => state.User?.token);
   const { badges, tier, recognition } = useSelector(
@@ -175,8 +180,10 @@ const GamificationRecognition = ({ navigation }) => {
                         {badgeMeta.description}
                       </Text>
                     )}
+                    {/* horizontalDivider */}
+                    <View style={styles.horizontalDivider} />
                     <Text style={styles.badgeMeta}>
-                      {(badgeMeta.category || "Milestone").replace(/_/g, " ")} •{" "}
+                      {formatCategoryLabel(badgeMeta.category)}{" "}
                       {formatDate(badge.awardedAt)}
                     </Text>
                   </View>
@@ -408,12 +415,13 @@ const styles = StyleSheet.create({
   badgeDescription: {
     fontSize: 12,
     color: theme.colors.textMuted,
-    lineHeight: 18,
+    lineHeight: 14,
     marginBottom: 6,
   },
   badgeMeta: {
-    fontSize: 12,
+    fontSize: 11,
     color: theme.colors.textMuted,
+    lineHeight: 14,
   },
   timelineRow: {
     flexDirection: "row",
@@ -487,6 +495,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.textMuted,
     lineHeight: 18,
+  },
+  horizontalDivider: {
+    height: 1,
+    backgroundColor: "rgba(100, 116, 139, 0.18)",
+    marginVertical: 12,
   },
 });
 

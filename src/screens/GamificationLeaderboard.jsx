@@ -107,6 +107,14 @@ const GamificationLeaderboard = ({ navigation }) => {
           </View>
         </GamificationCard>
 
+        {leaderboard?.currentUserRank ? (
+          <GamificationCard title="Your Position">
+            <Text style={styles.currentRank}>
+              You are currently ranked #{leaderboard.currentUserRank.rank}.
+            </Text>
+          </GamificationCard>
+        ) : null}
+
         <GamificationCard
           title="Weekly Rankings"
           subtitle={
@@ -162,14 +170,6 @@ const GamificationLeaderboard = ({ navigation }) => {
             />
           )}
         </GamificationCard>
-
-        {leaderboard?.currentUserRank ? (
-          <GamificationCard title="Your Position">
-            <Text style={styles.currentRank}>
-              You are currently ranked #{leaderboard.currentUserRank.rank}.
-            </Text>
-          </GamificationCard>
-        ) : null}
       </ScrollView>
       {loading && <Loader />}
     </SafeAreaView>

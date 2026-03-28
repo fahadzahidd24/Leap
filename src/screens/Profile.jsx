@@ -26,6 +26,7 @@ import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
   resetGamification,
+  setAgentBadges,
   setAgentNotifications,
   setAgentTier,
 } from "../redux/features/gamificationSlice";
@@ -76,10 +77,12 @@ const Profile = ({ navigation }) => {
 
       Promise.all([
         gamificationApi.getTier(user.token),
+        gamificationApi.getBadges(user.token),
         gamificationApi.getNotifications(user.token),
       ])
-        .then(([tierData, notificationData]) => {
+        .then(([tierData, badgeData, notificationData]) => {
           dispatch(setAgentTier(tierData));
+          dispatch(setAgentBadges(badgeData));
           dispatch(setAgentNotifications(notificationData));
           setLocalPreferences(notificationData?.preferences || defaultPreferences);
         })

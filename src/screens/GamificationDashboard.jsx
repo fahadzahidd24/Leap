@@ -107,6 +107,9 @@ const GamificationDashboard = ({ navigation }) => {
   const weeklyTrend = scorecard?.weekly?.trend || [];
   const dailyGoals = scorecard?.daily?.goals || {};
   const dailyRatios = scorecard?.daily?.ratios || {};
+  const prospectingRatioPercent = dailyGoals?.p_daily
+    ? Math.round(((dailyStats?.prospects ?? 0) / dailyGoals.p_daily) * 100)
+    : 0;
   const showcaseBadges = getBadgesByKeys(DASHBOARD_SHOWCASE_BADGE_KEYS);
 
   const encouragementText = useMemo(() => {
@@ -184,7 +187,7 @@ const GamificationDashboard = ({ navigation }) => {
                     <Text style={styles.statValue}>
                       {dailyStats?.prospects ?? 0}/{dailyGoals?.p_daily ?? 0}
                     </Text>
-                    <Text style={styles.statLabel}>Prospects</Text>
+                    <Text style={styles.statLabel}>Prospecting</Text>
                   </View>
                   <View style={styles.statChip}>
                     <Text style={styles.statValue}>
@@ -233,10 +236,13 @@ const GamificationDashboard = ({ navigation }) => {
                 </View>
                 <View style={styles.ratioRow}>
                   <Text style={styles.ratioText}>
+                    P: {prospectingRatioPercent}%
+                  </Text>
+                  <Text style={styles.ratioText}>
                     A: {dailyRatios?.appointmentRatioPercent ?? 0}%
                   </Text>
                   <Text style={styles.ratioText}>
-                    PR: {dailyRatios?.presentationRatioPercent ?? 0}%
+                    P: {dailyRatios?.presentationRatioPercent ?? 0}%
                   </Text>
                   <Text style={styles.ratioText}>
                     S: {dailyRatios?.salesRatioPercent ?? 0}%
@@ -619,7 +625,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   showcaseBadgeCard: {
-    width: 100,
+    width: 96,
     backgroundColor: "rgba(56, 113, 193, 0.06)",
     borderRadius: 14,
     padding: 10,
@@ -633,7 +639,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   showcaseBadgeTitle: {
-    fontSize: 11,
+    fontSize: 9,
+    lineHeight: 13,
     fontWeight: "700",
     color: theme.colors.textPrimary,
     textAlign: "center",
@@ -651,6 +658,7 @@ const styles = StyleSheet.create({
   },
   listRowText: {
     flex: 1,
+    paddingRight: 8,
   },
   inlineBadgeImage: {
     width: 38,
@@ -659,19 +667,20 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   listRowTitle: {
-    fontSize: 14,
+    fontSize: 13,
+    lineHeight: 17,
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },
   listRowSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: theme.colors.textMuted,
     marginTop: 3,
   },
   statusPill: {
     borderRadius: 999,
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     backgroundColor: "rgba(56, 113, 193, 0.1)",
   },
   statusPillSuccess: {
@@ -679,7 +688,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     color: theme.colors.background,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
   },
   statusPillTextSuccess: {

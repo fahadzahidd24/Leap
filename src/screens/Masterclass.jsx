@@ -155,7 +155,7 @@ const Masterclass = ({ navigation }) => {
           />
           <Text style={styles.heroTitle}>Sales Masterclass</Text>
           <Text style={styles.heroSubtitle}>
-            Watch and learn from our expert training videos
+            Watch and learn from our training library
           </Text>
         </View>
 

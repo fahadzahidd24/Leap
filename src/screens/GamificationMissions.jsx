@@ -211,7 +211,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   showcaseBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
+    lineHeight: 11,
     fontWeight: "700",
     textAlign: "center",
     color: theme.colors.textPrimary,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 8,
   },
   missionBadgeImage: {
     width: 40,
@@ -244,12 +245,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   missionTitle: {
-    fontSize: 15,
+    fontSize: 13,
+    lineHeight: 17,
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },
   missionMeta: {
-    fontSize: 12,
+    fontSize: 11,
     color: theme.colors.textMuted,
     marginBottom: 10,
   },
@@ -262,7 +264,7 @@ const styles = StyleSheet.create({
   rewardPill: {
     borderRadius: 999,
     backgroundColor: "rgba(247, 161, 31, 0.15)",
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 6,
   },
   rewardPillDone: {
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
   rewardPillText: {
     color: theme.colors.warning,
     fontWeight: "700",
-    fontSize: 12,
+    fontSize: 11,
   },
   rewardPillDoneText: {
     color: theme.colors.success,
