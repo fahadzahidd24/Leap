@@ -26,6 +26,9 @@ import {
   getBadgesByKeys,
   getLeaderboardBadgeMeta,
   getMissionBadgeMeta,
+  getMissionDisplayTitle,
+  getMissionProgressLabel,
+  getMissionRewardText,
 } from "../constants/gamificationVisuals";
 import {
   setAgentDailyMissions,
@@ -60,6 +63,7 @@ const GamificationDashboard = ({ navigation }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState("");
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -127,7 +131,9 @@ const GamificationDashboard = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.backgroundStyle}>
+    <SafeAreaView
+      style={[styles.backgroundStyle, { backgroundColor: theme.colors.background }]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -279,7 +285,9 @@ const GamificationDashboard = ({ navigation }) => {
                     color={theme.colors.success}
                   />
                 }
-                onPress={() => navigation.navigate("Missions")}
+                onPress={() =>
+                  navigation.navigate("Missions", { backTo: "Dashboard" })
+                }
               />
               <QuickAction
                 label="Leaderboard"
@@ -291,7 +299,9 @@ const GamificationDashboard = ({ navigation }) => {
                     color={theme.colors.info}
                   />
                 }
-                onPress={() => navigation.navigate("Leaderboard")}
+                onPress={() =>
+                  navigation.navigate("Leaderboard", { backTo: "Dashboard" })
+                }
               />
               <QuickAction
                 label="Recognition"
@@ -332,7 +342,11 @@ const GamificationDashboard = ({ navigation }) => {
             title="Today’s Missions"
             subtitle={`${dailyMissions?.progressPercent ?? 0}% complete`}
             rightContent={
-              <TouchableOpacity onPress={() => navigation.navigate("Missions")}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("Missions", { backTo: "Dashboard" })
+                }
+              >
                 <Text style={styles.linkText}>View all</Text>
               </TouchableOpacity>
             }
@@ -340,16 +354,19 @@ const GamificationDashboard = ({ navigation }) => {
             {dailyMissions?.missions?.length ? (
               dailyMissions.missions.slice(0, 3).map((mission, index) => {
                 const missionBadge = getMissionBadgeMeta(mission, index);
+                const missionTitle = getMissionDisplayTitle(mission, index);
+                const missionProgressLabel = getMissionProgressLabel(mission);
+                const missionRewardText = getMissionRewardText(mission);
 
                 return (
-                  <View key={mission.key} style={styles.listRow}>
+                  <View key={mission.key || `${missionTitle}-${index}`} style={styles.listRow}>
                     {missionBadge?.image ? (
                       <Image source={missionBadge.image} style={styles.inlineBadgeImage} />
                     ) : null}
                     <View style={styles.listRowText}>
-                      <Text style={styles.listRowTitle}>{mission.title}</Text>
+                      <Text style={styles.listRowTitle}>{missionTitle}</Text>
                       <Text style={styles.listRowSubtitle}>
-                        {mission.progressLabel} • {mission.rewardPoints} pts
+                        {missionProgressLabel} • {missionRewardText}
                       </Text>
                     </View>
                     <View
@@ -383,7 +400,9 @@ const GamificationDashboard = ({ navigation }) => {
             subtitle="This week’s top momentum"
             rightContent={
               <TouchableOpacity
-                onPress={() => navigation.navigate("Leaderboard")}
+                onPress={() =>
+                  navigation.navigate("Leaderboard", { backTo: "Dashboard" })
+                }
               >
                 <Text style={styles.linkText}>Open</Text>
               </TouchableOpacity>
@@ -478,7 +497,6 @@ export default GamificationDashboard;
 
 const styles = StyleSheet.create({
   backgroundStyle: {
-    backgroundColor: theme.colors.background,
     flex: 1,
   },
   header: {

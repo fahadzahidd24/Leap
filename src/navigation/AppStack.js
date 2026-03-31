@@ -50,8 +50,18 @@ import GamificationDashboard from "../screens/GamificationDashboard";
 import ManagerDashboard from "../screens/ManagerDashboard";
 import ManagerLiveMap from "../screens/ManagerLiveMap";
 import ModulePicker from "../screens/ModulePicker";
-import { getInitialRouteForRole, getModuleConfig } from "../constants/moduleConfig";
+import { getModuleConfig, MODULE_KEYS } from "../constants/moduleConfig";
 import { clearSelectedModule } from "../redux/features/moduleSlice";
+import QuestSales from "../modules/quest/screens/QuestSales";
+import QuestDailyActivity from "../modules/quest/screens/QuestDailyActivity";
+import QuestAnnualProgress from "../modules/quest/screens/QuestAnnualProgress";
+import QuestEffectivenessReport from "../modules/quest/screens/QuestEffectivenessReport";
+import QuestActivityReports from "../modules/quest/screens/QuestActivityReports";
+import QuestHome from "../modules/quest/screens/QuestHome";
+import QuestProfession from "../modules/quest/screens/QuestProfession";
+import QuestMyAgents from "../modules/quest/screens/QuestMyAgents";
+import QuestChatCoach from "../modules/quest/screens/AskMyCoach/QuestChatCoach";
+import QuestChatGpt from "../modules/quest/screens/AskMyCoach/QuestChatGpt";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -403,13 +413,25 @@ const createDrawerStyles = (drawerColors) =>
 });
 
 const TabNav = () => {
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const DailyActivityScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestDailyActivity : DailyActivity;
+  const ActivityReportsScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestActivityReports : ActivityReports;
+  const EffectivenessReportScreen =
+    selectedModule === MODULE_KEYS.QUEST
+      ? QuestEffectivenessReport
+      : EffectivenessReport;
+  const AnnualProgressScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestAnnualProgress : AnnualProgress;
+
   return (
     <Tabs.Navigator
       screenOptions={{ headerShown: false, tabBarHideOnKeyboard: true }}
     >
       <Tabs.Screen
         name="Daily Activity"
-        component={DailyActivity}
+        component={DailyActivityScreen}
         options={{
           tabBarLabel: "Daily Activity",
           tabBarIcon: () => <Feather name="activity" size={24} color="black" />,
@@ -417,7 +439,7 @@ const TabNav = () => {
       />
       <Tabs.Screen
         name="Activity Reports"
-        component={ActivityReports}
+        component={ActivityReportsScreen}
         options={{
           tabBarIcon: () => (
             <Entypo name="text-document" size={24} color="black" />
@@ -426,7 +448,7 @@ const TabNav = () => {
       />
       <Tabs.Screen
         name="Effectiveness Report"
-        component={EffectivenessReport}
+        component={EffectivenessReportScreen}
         options={{
           tabBarIcon: () => (
             <MaterialCommunityIcons
@@ -439,7 +461,7 @@ const TabNav = () => {
       />
       <Tabs.Screen
         name="Annual Progress"
-        component={AnnualProgress}
+        component={AnnualProgressScreen}
         options={{
           tabBarIcon: () => (
             <FontAwesome6 name="bars-progress" size={24} color="black" />
@@ -453,8 +475,11 @@ const TabNav = () => {
 const DrawerNav = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const entries = useSelector((state) => state.Entries);
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const isQuest = selectedModule === MODULE_KEYS.QUEST;
+  const moduleConfig = getModuleConfig(selectedModule);
+  const HomeScreen = selectedModule === MODULE_KEYS.QUEST ? QuestHome : Home;
+  const SalesScreen = selectedModule === MODULE_KEYS.QUEST ? QuestSales : Sales;
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
@@ -468,12 +493,16 @@ const DrawerNav = () => {
   const agentRoutes = [
     { name: "GITSA Home", label: "GITSA Home" },
     { name: "Home", label: "Home" },
-    { name: "Dashboard", label: "Dashboard" },
+    ...(!isQuest ? [{ name: "Dashboard", label: "Dashboard" }] : []),
     { name: "tabs", label: "Overview" },
     { name: "Sales", label: "Sales Targets" },
-    { name: "Missions", label: "Missions" },
-    { name: "Leaderboard", label: "Leaderboard" },
-    { name: "Recognition", label: "Recognition" },
+    ...(!isQuest
+      ? [
+          { name: "Missions", label: "Missions" },
+          { name: "Leaderboard", label: "Leaderboard" },
+          { name: "Recognition", label: "Recognition" },
+        ]
+      : []),
     { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];
@@ -491,7 +520,7 @@ const DrawerNav = () => {
       screenOptions={{
         title: "",
         headerStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: moduleConfig.colors.background,
         },
         headerShadowVisible: false,
         drawerStyle: {
@@ -523,7 +552,7 @@ const DrawerNav = () => {
       />
       <Drawer.Screen
         name="Home"
-        component={Home}
+        component={HomeScreen}
         options={{
           drawerLabel: "Home",
         }}
@@ -546,7 +575,7 @@ const DrawerNav = () => {
       />
       <Drawer.Screen
         name="Sales"
-        component={Sales}
+        component={SalesScreen}
         options={{
           drawerLabel: "Sales Targets",
           title: "",
@@ -602,6 +631,10 @@ const DrawerNav = () => {
 const ManagerDrawerNav = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const isQuest = selectedModule === MODULE_KEYS.QUEST;
+  const moduleConfig = getModuleConfig(selectedModule);
+  const MyAgentsScreen = isQuest ? QuestMyAgents : MyAgents;
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
@@ -634,7 +667,7 @@ const ManagerDrawerNav = () => {
       screenOptions={{
         title: "",
         headerStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: moduleConfig.colors.background,
         },
         headerShadowVisible: false,
         drawerStyle: {
@@ -673,7 +706,7 @@ const ManagerDrawerNav = () => {
       />
       <Drawer.Screen
         name="My Agents"
-        component={MyAgents}
+        component={MyAgentsScreen}
         options={{
           drawerLabel: "My Agents",
         }}
@@ -709,6 +742,11 @@ const ManagerDrawerNav = () => {
 const CoachDrawer = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleConfig = getModuleConfig(selectedModule);
+  const HomeScreen = selectedModule === MODULE_KEYS.QUEST ? QuestHome : Home;
+  const ProfessionScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestProfession : Profession;
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
@@ -725,7 +763,6 @@ const CoachDrawer = () => {
     { name: "Profession", label: "Profession" },
     { name: "ChatCoach", label: "Chat" },
   ];
-
   const prof = AsyncStorage.getItem("profession");
   console.log(prof);
   const initialRouteNameV = prof ? "ChatCoach" : "Profession";
@@ -742,7 +779,7 @@ const CoachDrawer = () => {
       screenOptions={{
         title: "",
         headerStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: moduleConfig.colors.background,
         },
         headerShadowVisible: false,
         drawerStyle: {
@@ -774,21 +811,21 @@ const CoachDrawer = () => {
       />
       <Drawer.Screen
         name="Home"
-        component={Home}
+        component={HomeScreen}
         options={{
           drawerLabel: "Home",
         }}
       />
       <Drawer.Screen
         name="Profession"
-        component={Profession}
+        component={ProfessionScreen}
         options={{
           drawerLabel: "Profession",
         }}
       />
       <Drawer.Screen
         name="ChatCoach"
-        component={CoachStack}
+        component={CoachStackNavigator}
         options={{
           drawerLabel: "Chat",
           headerShown: false,
@@ -880,7 +917,13 @@ const AdminDrawerNav = () => {
   );
 };
 
-const CoachStack = () => {
+const CoachStackNavigator = () => {
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const PromptsScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestChatCoach : ChatCoach;
+  const ChatGptScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestChatGpt : ChatGpt;
+
   return (
     <NativeStack.Navigator
       initialRouteName="Prompts"
@@ -889,8 +932,8 @@ const CoachStack = () => {
         animation: "fade_from_bottom",
       }}
     >
-      <NativeStack.Screen name="Prompts" component={ChatCoach} />
-      <NativeStack.Screen name="ChatGpt" component={ChatGpt} />
+      <NativeStack.Screen name="Prompts" component={PromptsScreen} />
+      <NativeStack.Screen name="ChatGpt" component={ChatGptScreen} />
     </NativeStack.Navigator>
   );
 };
@@ -898,7 +941,10 @@ const CoachStack = () => {
 export default AppStack = () => {
   const role = useSelector((state) => state.User?.role);
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleConfig = getModuleConfig(selectedModule);
   const navigation = useNavigation();
+  const AnnualProgressScreen =
+    selectedModule === MODULE_KEYS.QUEST ? QuestAnnualProgress : AnnualProgress;
 
   return (
     <Stack.Navigator
@@ -932,7 +978,7 @@ export default AppStack = () => {
           <Stack.Screen
             options={{ headerShown: false }}
             name="Annual Progress"
-            component={AnnualProgress}
+            component={AnnualProgressScreen}
           />
         </>
       )}
@@ -947,7 +993,7 @@ export default AppStack = () => {
             options={{
               headerTitle: "",
               headerStyle: {
-                backgroundColor: theme.colors.background,
+                backgroundColor: moduleConfig.colors.background,
               },
               headerShadowVisible: false,
               headerLeft: () => (

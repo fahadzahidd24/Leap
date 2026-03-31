@@ -29,7 +29,7 @@ const scopes = [
   // { key: "role", label: "Role" },
 ];
 
-const GamificationLeaderboard = ({ navigation }) => {
+const GamificationLeaderboard = ({ navigation, route }) => {
   const token = useSelector((state) => state.User?.token);
   const leaderboard = useSelector((state) => state.Gamification.agent.leaderboard);
   const dispatch = useDispatch();
@@ -58,11 +58,15 @@ const GamificationLeaderboard = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(route?.params?.backTo || "Dashboard")}
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Leaderboard</Text>
@@ -179,7 +183,6 @@ const GamificationLeaderboard = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   content: {
     padding: 20,

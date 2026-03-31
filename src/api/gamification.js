@@ -1,4 +1,5 @@
 import { privateApi } from "./axios";
+import { normalizeTierData } from "../constants/gamificationVisuals";
 
 export const gamificationApi = {
   getScorecard: async (token) => {
@@ -25,7 +26,7 @@ export const gamificationApi = {
   },
   getTier: async (token) => {
     const res = await privateApi(token).get("/gamification/me/tier");
-    return res.data?.tier || null;
+    return normalizeTierData(res.data?.tier || null);
   },
   getRecognitionFeed: async (token) => {
     const res = await privateApi(token).get("/gamification/me/recognition-feed");

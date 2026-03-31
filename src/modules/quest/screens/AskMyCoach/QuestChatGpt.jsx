@@ -1,12 +1,13 @@
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Image, Alert } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../constants/theme';
+import { theme } from '../../../../constants/theme';
 import { useSelector } from 'react-redux';
-import { privateApi } from '../../api/axios';
-import { MODULE_KEYS } from '../../constants/moduleConfig';
+import { privateApi } from '../../../../api/axios';
+import { getModuleConfig, MODULE_KEYS } from '../../../../constants/moduleConfig';
 
 const ChatGpt = ({ navigation, route }) => {
+  const moduleConfig = getModuleConfig(MODULE_KEYS.QUEST);
   const { prompt } = route.params;
   const [chatQuery, setChatQuery] = useState('');
   const [messages, setMessages] = useState([]);
@@ -14,11 +15,6 @@ const ChatGpt = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const scrollViewRef = useRef();
   const token = useSelector((state) => state.User.token);
-  const selectedModule = useSelector((state) => state.Module?.selectedModule);
-  const sendButtonColor =
-    selectedModule === MODULE_KEYS.QUEST ? "#f5941d" : "green";
-  const coachLabel =
-    selectedModule === MODULE_KEYS.QUEST ? "QUEST AI coach" : "LEAP AI coach";
 
   useEffect(() => {
     if (promptToSend) {
@@ -77,7 +73,7 @@ const ChatGpt = ({ navigation, route }) => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      style={{ flex: 1, backgroundColor: "#3f8e9c" }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'null'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       enabled
@@ -103,9 +99,9 @@ const ChatGpt = ({ navigation, route }) => {
               {message.type === 'received' && <View style={{
                 padding: 10, borderRadius: 50, backgroundColor: "#fff", height: 35,
               }}>
-                <Ionicons name="star" size={15} color={theme.colors.background} />
+                <Ionicons name="star" size={15} color={"#3f8e9c"} />
                 <View style={{ position: "absolute", top: "130%", left: 0, right: 0, bottom: 0, justifyContent: "center", alignItems: "center" }}>
-                  <Text style={{ fontSize: 10, color: theme.colors.background }}>---</Text>
+                  <Text style={{ fontSize: 10, color: "#3f8e9c" }}>---</Text>
                 </View>
               </View>}
 
@@ -116,7 +112,7 @@ const ChatGpt = ({ navigation, route }) => {
           {/* Displaying loader when loading */}
           {loading && (
             <View style={styles.receivedMessage}>
-              <Image source={require('../../../assets/messageLoader.gif')} style={{ height: 10, width: 60 }} />
+              <Image source={require('../../../../../assets/messageLoader.gif')} style={{ height: 10, width: 60 }} />
             </View>
           )}
         </View>
@@ -133,15 +129,13 @@ const ChatGpt = ({ navigation, route }) => {
           />
           <TouchableOpacity onPress={() => sendMessage(chatQuery)}>
             {chatQuery.trim() ? (
-              <View style={{ borderRadius: 50, padding: 5, backgroundColor: sendButtonColor }}>
+              <View style={{ borderRadius: 50, padding: 5, backgroundColor: '#f5941d' }}>
                 <Ionicons name="chatbubble-ellipses" size={20} color="white" />
               </View>
             ) : null}
           </TouchableOpacity>
         </View>
-        <Text style={{ color: "#fff", textAlign: "center", fontSize: 8, maxWidth: "80%" }}>
-          {coachLabel} can make mistakes. Check important info.
-        </Text>
+        <Text style={{ color: "#fff", textAlign: "center", fontSize: 8, maxWidth: "80%" }}>QUEST AI coach can make mistakes. Check important info.</Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -185,7 +179,7 @@ const styles = StyleSheet.create({
   },
   sentMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#43a4ff',
+    backgroundColor:'#f5941d',
     padding: 10,
     borderRadius: 10,
     marginVertical: 5,

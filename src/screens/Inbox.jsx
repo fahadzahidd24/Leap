@@ -92,7 +92,9 @@ const Inbox = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar style={{ backgroundColor: "#000" }} />
 
       <View
@@ -232,7 +234,6 @@ export default Inbox;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
     justifyContent: "flex-start",
     width: "100%",
     paddingVertical: 20,

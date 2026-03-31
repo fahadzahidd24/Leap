@@ -19,6 +19,11 @@ import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
   getBadgesByKeys,
   getMissionBadgeMeta,
+  getMissionDisplayTitle,
+  getMissionProgressPercent,
+  getMissionProgressLabel,
+  getMissionRewardText,
+  getMissionTypeLabel,
   MISSION_SHOWCASE_BADGE_KEYS,
 } from "../constants/gamificationVisuals";
 import {
@@ -48,18 +53,23 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
       {missions?.length ? (
         missions.map((mission, index) => {
           const missionBadge = getMissionBadgeMeta(mission, index);
+          const missionTitle = getMissionDisplayTitle(mission, index);
+          const missionProgressLabel = getMissionProgressLabel(mission);
+          const missionProgressPercent = getMissionProgressPercent(mission);
+          const missionRewardText = getMissionRewardText(mission);
+          const missionTypeLabel = getMissionTypeLabel(mission, title?.includes("Weekly") ? "weekly" : "daily");
 
           return (
-            <View key={mission.key} style={styles.missionCard}>
+            <View key={mission.key || `${missionTitle}-${index}`} style={styles.missionCard}>
               <View style={styles.missionHeader}>
                 <View style={styles.missionIdentity}>
                   {missionBadge?.image ? (
                     <Image source={missionBadge.image} style={styles.missionBadgeImage} />
                   ) : null}
                   <View style={styles.missionTextBlock}>
-                    <Text style={styles.missionTitle}>{mission.title}</Text>
+                    <Text style={styles.missionTitle}>{missionTitle}</Text>
                     <Text style={styles.missionMeta}>
-                      {mission.progressLabel} • {mission.type}
+                      {missionProgressLabel} • {missionTypeLabel}
                     </Text>
                   </View>
                 </View>
@@ -75,7 +85,7 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
                       mission.completed && styles.rewardPillDoneText,
                     ]}
                   >
-                    {mission.completed ? "Completed" : `${mission.rewardPoints} pts`}
+                    {missionRewardText}
                   </Text>
                 </View>
               </View>
@@ -87,10 +97,7 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
                   style={[
                     styles.progressFill,
                     {
-                      width: `${Math.min(
-                        100,
-                        mission.target ? (mission.progress / mission.target) * 100 : 0
-                      )}%`,
+                      width: `${missionProgressPercent}%`,
                     },
                   ]}
                 />
@@ -108,7 +115,7 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
   );
 };
 
-const GamificationMissions = ({ navigation }) => {
+const GamificationMissions = ({ navigation, route }) => {
   const token = useSelector((state) => state.User?.token);
   const { dailyMissions, weeklyMissions } = useSelector(
     (state) => state.Gamification.agent
@@ -138,15 +145,23 @@ const GamificationMissions = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(route?.params?.backTo || "Dashboard")}
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Missions</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Leaderboard")}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Leaderboard", { backTo: "Missions" })
+            }
+          >
             <MaterialCommunityIcons name="podium-gold" size={24} color="white" />
           </TouchableOpacity>
         </View>
@@ -175,7 +190,6 @@ const GamificationMissions = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   content: {
     padding: 20,

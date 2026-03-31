@@ -18,6 +18,7 @@ const LeapTextInput = ({
   backgroundColor,
   borderColor,
   activeBorderColor,
+  labelStyle,
 }) => {
   const [hidePassword, setHidePassword] = useState(true);
   const resolvedTextColor = textColor || "#000";
@@ -52,7 +53,7 @@ const LeapTextInput = ({
         ))
       }
       disabled={isDisabled}
-      label={label}
+      label={labelStyle ? <Text style={labelStyle}>{label}</Text> : label}
       textColor={resolvedTextColor}
       value={value}
       keyboardType={keyboardType}

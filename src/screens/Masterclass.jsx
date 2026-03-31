@@ -131,7 +131,9 @@ const Masterclass = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
 
       {/* Header */}
@@ -196,7 +198,6 @@ export default Masterclass;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: "row",

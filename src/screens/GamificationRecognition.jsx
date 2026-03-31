@@ -80,7 +80,9 @@ const GamificationRecognition = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar
         barStyle="light-content"
         backgroundColor={theme.colors.background}
@@ -292,7 +294,6 @@ const GamificationRecognition = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   content: {
     padding: 20,

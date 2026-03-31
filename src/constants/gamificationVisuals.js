@@ -149,6 +149,62 @@ export const getTierMeta = (tierLabelOrKey) => {
   };
 };
 
+export const getTierMetaByScore = (score) => {
+  const numericScore = Number(score);
+
+  if (!Number.isFinite(numericScore)) {
+    return null;
+  }
+
+  return (
+    [...TIER_THRESHOLDS]
+      .reverse()
+      .find((item) => numericScore >= item.minLifetimeScore) || TIER_THRESHOLDS[0]
+  );
+};
+
+export const normalizeTierData = (tier) => {
+  if (!tier) {
+    return null;
+  }
+
+  const lifetimeScore = Number(tier?.lifetimeScore ?? 0);
+  const inferredCurrentTier = getTierMetaByScore(lifetimeScore);
+  const currentTierMeta = getTierMeta(tier?.currentTier) || inferredCurrentTier;
+
+  const nextTierMeta =
+    getTierMeta(tier?.nextTier) ||
+    TIER_THRESHOLDS.find(
+      (item) =>
+        currentTierMeta &&
+        item.minLifetimeScore > currentTierMeta.minLifetimeScore
+    ) ||
+    null;
+
+  let progressPercent = Number(tier?.progressPercent);
+  if (!Number.isFinite(progressPercent)) {
+    if (currentTierMeta && nextTierMeta) {
+      const currentFloor = currentTierMeta.minLifetimeScore;
+      const nextFloor = nextTierMeta.minLifetimeScore;
+      const range = nextFloor - currentFloor;
+      progressPercent =
+        range > 0 ? ((lifetimeScore - currentFloor) / range) * 100 : 0;
+    } else if (currentTierMeta) {
+      progressPercent = 100;
+    } else {
+      progressPercent = 0;
+    }
+  }
+
+  return {
+    ...tier,
+    currentTier: tier?.currentTier || currentTierMeta?.label || "",
+    nextTier: tier?.nextTier || nextTierMeta?.label || null,
+    progressPercent: Math.max(0, Math.min(100, progressPercent)),
+    lifetimeScore: Number.isFinite(lifetimeScore) ? lifetimeScore : 0,
+  };
+};
+
 export const getBadgeMeta = (badgeKey, fallbackTitle, fallbackCategory) => {
   const normalized = String(badgeKey || "").trim().toLowerCase();
   const badge = BADGE_DEFINITIONS.find((item) => item.key === normalized);
@@ -207,4 +263,92 @@ export const getMissionBadgeMeta = (mission, index = 0) => {
       : MISSION_SHOWCASE_BADGE_KEYS.daily;
 
   return getBadgeMeta(fallbackKeys[index % fallbackKeys.length]);
+};
+
+export const getMissionDisplayTitle = (mission, index = 0) => {
+  const rawTitle = String(mission?.title || "").trim();
+
+  if (/[A-Za-z0-9]/.test(rawTitle)) {
+    return rawTitle;
+  }
+
+  return (
+    getMissionBadgeMeta(mission, index)?.title ||
+    mission?.progressLabel ||
+    "Mission"
+  );
+};
+
+export const getMissionProgressLabel = (mission) => {
+  const rawProgressLabel = String(mission?.progressLabel || "").trim();
+
+  if (/[A-Za-z0-9]/.test(rawProgressLabel)) {
+    return rawProgressLabel;
+  }
+
+  const currentValue = mission?.currentValue ?? mission?.progress;
+  const targetValue = mission?.targetValue ?? mission?.target;
+
+  if (currentValue !== undefined || targetValue !== undefined) {
+    return `${currentValue ?? 0}/${targetValue ?? 0}`;
+  }
+
+  const metricKey = String(mission?.metricKey || "").trim();
+  if (metricKey) {
+    return metricKey
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  return "In progress";
+};
+
+const toTitleCase = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^\w/, (char) => char.toUpperCase());
+
+export const getMissionTypeLabel = (mission, fallbackType = "daily") => {
+  const rawType = String(mission?.type || "").trim();
+
+  if (rawType) {
+    return toTitleCase(rawType);
+  }
+
+  const missionFingerprint = [
+    mission?.key,
+    mission?.metricKey,
+    mission?.title,
+    mission?.progressLabel,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (missionFingerprint.includes("week")) {
+    return "Weekly";
+  }
+
+  return toTitleCase(fallbackType) || "Daily";
+};
+
+export const getMissionRewardText = (mission) => {
+  if (mission?.completed) {
+    return "Completed";
+  }
+
+  return `${mission?.rewardPoints ?? 0} pts`;
+};
+
+export const getMissionProgressPercent = (mission) => {
+  const currentValue = Number(mission?.currentValue ?? mission?.progress ?? 0);
+  const targetValue = Number(mission?.targetValue ?? mission?.target ?? 0);
+
+  if (!Number.isFinite(currentValue) || !Number.isFinite(targetValue) || targetValue <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, (currentValue / targetValue) * 100));
 };

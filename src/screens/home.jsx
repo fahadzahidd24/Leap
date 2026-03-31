@@ -14,8 +14,9 @@ import {
 import React from "react";
 import { theme } from "../constants/theme";
 import { useSelector } from "react-redux";
-import { getModuleConfig } from "../constants/moduleConfig";
+import { getModuleConfig, MODULE_KEYS } from "../constants/moduleConfig";
 import Loader from "../components/Loader";
+import { hasCompletedSalesTargets as hasCompletedQuestTargets } from "../utils/hasCompletedSalesTargets";
 
 const Module = ({ navigation, text, bg, fg, routeName, onPress }) => {
   return (
@@ -27,11 +28,17 @@ const Module = ({ navigation, text, bg, fg, routeName, onPress }) => {
         }
 
         if (text === "Watch masterclass") {
+          navigation.getParent?.()?.navigate("Masterclass");
           navigation.navigate("Masterclass");
           return;
-        } else {
-          navigation.replace(routeName);
         }
+
+        if (routeName === "Coach") {
+          navigation.getParent?.()?.navigate("Coach");
+          return;
+        }
+
+        navigation.navigate(routeName);
       }}
       style={{
         backgroundColor: "orange",
@@ -87,11 +94,14 @@ const Home = ({ navigation }) => {
   const isEntriesLoading = selectedModule && entries?.__loaded !== true;
 
   const openSalesActivity = () => {
-    const hasSalesTargetEntries = Boolean(
-      entries?.SalesTargets?.salesTargets &&
-        entries?.SalesTargets?.averageCaseSize &&
-        entries?.SalesTargets?.numberOfWeeks
-    );
+    const hasSalesTargetEntries =
+      selectedModule === MODULE_KEYS.QUEST
+        ? hasCompletedQuestTargets(entries)
+        : Boolean(
+            entries?.SalesTargets?.salesTargets &&
+              entries?.SalesTargets?.averageCaseSize &&
+              entries?.SalesTargets?.numberOfWeeks
+          );
 
     if (hasSalesTargetEntries) {
       navigation.navigate("tabs", { screen: "Daily Activity" });
@@ -102,7 +112,9 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.backgroundStyle}>
+    <SafeAreaView
+      style={[styles.backgroundStyle, { backgroundColor: moduleConfig.colors.background }]}
+    >
       <Loader loading={isEntriesLoading} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -111,7 +123,7 @@ const Home = ({ navigation }) => {
       >
         <StatusBar
           barStyle={"light-content"}
-          backgroundColor={theme.colors.background}
+          backgroundColor={moduleConfig.colors.background}
         />
 
         <View style={styles.header}>
@@ -176,7 +188,11 @@ const Home = ({ navigation }) => {
               })
             }
           >
-            <Text style={styles.dashboardButtonText}>Open Dashboard</Text>
+            <Text
+              style={[styles.dashboardButtonText, { color: moduleConfig.colors.secondary }]}
+            >
+              Open Dashboard
+            </Text>
           </TouchableOpacity>
 
           {/* <Text
@@ -236,7 +252,6 @@ export default Home;
 
 const styles = StyleSheet.create({
   backgroundStyle: {
-    backgroundColor: theme.colors.background,
     flex: 1,
   },
   scrollViewStyle: {},
@@ -259,7 +274,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dashboardButtonText: {
-    color: theme.colors.secondary,
     fontSize: 16,
     fontWeight: "700",
   },

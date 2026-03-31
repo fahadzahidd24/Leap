@@ -2,11 +2,15 @@ import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import React from 'react'
 import { theme } from '../../constants/theme'
 import { useSelector } from 'react-redux'
-import { getModuleConfig } from '../../constants/moduleConfig'
+import { getModuleConfig, MODULE_KEYS } from '../../constants/moduleConfig'
 
 const Disclaimer = ({navigation}) => {
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const moduleConfig = getModuleConfig(selectedModule);
+  const coachTitle =
+    selectedModule === MODULE_KEYS.QUEST
+      ? "My Recruitment Coach"
+      : "My Sales Coach";
   return (
     <KeyboardAvoidingView
     style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -25,7 +29,7 @@ const Disclaimer = ({navigation}) => {
           source={moduleConfig.assets.logo}
           style={{ alignSelf: "center", width: 220, height: 220 }}
         />
-        {/* <Text
+        <Text
           style={{
             textAlign: "center",
             fontSize: 28,
@@ -34,8 +38,8 @@ const Disclaimer = ({navigation}) => {
             color: theme.colors.secondary,
           }}
         >
-          My Sales Coach
-        </Text> */}
+          {coachTitle}
+        </Text>
       </View>
 
       <View style={{ width: "80%", marginVertical: "5%" }}>
