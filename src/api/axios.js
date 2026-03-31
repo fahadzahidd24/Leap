@@ -5,19 +5,35 @@ import { Alert } from "react-native";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
 import { resetGamification } from "../redux/features/gamificationSlice";
+import { clearSelectedModule } from "../redux/features/moduleSlice";
+import { MODULE_KEYS } from "../constants/moduleConfig";
 
 // const baseURL = "https://leaptechsolutions.com/api";
 // const publicURL = "https://leaptechsolutions.com/public";
 export const baseURL = "https://gentle-cub-positively.ngrok-free.app/api";
 const publicURL = "https://gentle-cub-positively.ngrok-free.app/public";
 
+const getModulePrefix = (moduleKey) =>
+  moduleKey === MODULE_KEYS.QUEST ? "/quest" : "";
+
+const getScopedBaseURL = ({ shared = false, moduleKey } = {}) => {
+  if (shared) {
+    return baseURL;
+  }
+
+  const selectedModule =
+    moduleKey || store.getState()?.Module?.selectedModule || MODULE_KEYS.LEAP;
+
+  return `${baseURL}${getModulePrefix(selectedModule)}`;
+};
+
 const publicApi = axios.create({
   baseURL,
 });
 
-const privateApi = (token) => {
+const createPrivateApi = (token, options = {}) => {
   const instance = axios.create({
-    baseURL, // Ensure you define the `baseURL` somewhere in your environment
+    baseURL: getScopedBaseURL(options),
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -42,6 +58,7 @@ const privateApi = (token) => {
               text: "OK",
               onPress: () => {
                 store.dispatch(logoutUser());
+                store.dispatch(clearSelectedModule());
                 store.dispatch(resetEntries());
                 store.dispatch(resetChat());
                 store.dispatch(resetGamification());
@@ -62,7 +79,12 @@ const privateApi = (token) => {
   return instance;
 };
 
-export { publicURL, publicApi, privateApi };
+const privateApi = (token, options = {}) =>
+  createPrivateApi(token, { shared: false, ...options });
+
+const privateSharedApi = (token) => createPrivateApi(token, { shared: true });
+
+export { publicURL, publicApi, privateApi, privateSharedApi };
 
 // const privateApi = (token) =>
 //   axios.create({

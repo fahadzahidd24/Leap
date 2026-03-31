@@ -22,8 +22,16 @@ import { privateApi } from "../api/axios";
 import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { getMalaysianDateString } from "../utils/currentDate&Day";
+import { getModuleConfig } from "../constants/moduleConfig";
 
-const Category = ({ goals, achieved, text, backgroundColor }) => {
+const Category = ({
+  goals,
+  achieved,
+  text,
+  backgroundColor,
+  goalImage,
+  achievedImage,
+}) => {
   return (
     <View
       style={{
@@ -55,7 +63,7 @@ const Category = ({ goals, achieved, text, backgroundColor }) => {
           style={{ marginRight: 3 }}
         /> */}
         <Image
-          source={require("../../assets/goal1.png")}
+          source={goalImage}
           style={{
             marginRight: 2,
             width: 45,
@@ -82,7 +90,7 @@ const Category = ({ goals, achieved, text, backgroundColor }) => {
           style={{ marginRight: 3 }}
         /> */}
         <Image
-          source={require("../../assets/achieved1.png")}
+          source={achievedImage}
           style={{
             marginRight: 2,
             width: 40,
@@ -114,7 +122,9 @@ const ActivityReports = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const entries = useSelector((state) => state.Entries);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const navigation = useNavigation();
+  const moduleConfig = getModuleConfig(selectedModule);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -223,24 +233,32 @@ const ActivityReports = () => {
             goals={entries?.daily_goals?.p_daily || 0}
             achieved={entries?.daily_achieved?.p_daily || 0}
             backgroundColor={"#ff5757"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"A"}
             goals={entries?.daily_goals?.a_daily || 0}
             achieved={entries?.daily_achieved?.a_daily || 0}
             backgroundColor={"#ffca08"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"P"}
             goals={entries?.daily_goals?.pr_daily || 0}
             achieved={entries?.daily_achieved?.pr_daily || 0}
             backgroundColor={"#cb6be5"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"S"}
             goals={entries?.daily_goals?.s_daily || 0}
             achieved={entries?.daily_achieved?.s_daily?.length || 0}
             backgroundColor={"#00bf63"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
         </View>
         <View style={{ flex: 1, justifyContent: "flex-end" }}>
@@ -261,24 +279,32 @@ const ActivityReports = () => {
             goals={entries?.weekly_goals?.p_weekly || 0}
             achieved={entries?.weekly_achieved?.p_weekly || 0}
             backgroundColor={"#ff5757"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"A"}
             goals={entries?.weekly_goals?.a_weekly || 0}
             achieved={entries?.weekly_achieved?.a_weekly || 0}
             backgroundColor={"#ffca08"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"P"}
             goals={entries?.weekly_goals?.pr_weekly || 0}
             achieved={entries?.weekly_achieved?.pr_weekly || 0}
             backgroundColor={"#cb6be5"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
           <Category
             text={"S"}
             goals={entries?.weekly_goals?.s_weekly || 0}
             achieved={entries?.weekly_achieved?.s_weekly || 0}
             backgroundColor={"#00bf63"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
         </View>
       </ScrollView>

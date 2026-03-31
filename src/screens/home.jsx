@@ -14,11 +14,18 @@ import {
 import React from "react";
 import { theme } from "../constants/theme";
 import { useSelector } from "react-redux";
+import { getModuleConfig } from "../constants/moduleConfig";
+import Loader from "../components/Loader";
 
-const Module = ({ navigation, text, bg, fg, href, routeName }) => {
+const Module = ({ navigation, text, bg, fg, routeName, onPress }) => {
   return (
     <Pressable
       onPress={() => {
+        if (onPress) {
+          onPress();
+          return;
+        }
+
         if (text === "Watch masterclass") {
           navigation.navigate("Masterclass");
           return;
@@ -74,9 +81,29 @@ const Module = ({ navigation, text, bg, fg, href, routeName }) => {
 
 const Home = ({ navigation }) => {
   const user = useSelector((state) => state.User);
+  const entries = useSelector((state) => state.Entries);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleConfig = getModuleConfig(selectedModule);
+  const isEntriesLoading = selectedModule && entries?.__loaded !== true;
+
+  const openSalesActivity = () => {
+    const hasSalesTargetEntries = Boolean(
+      entries?.SalesTargets?.salesTargets &&
+        entries?.SalesTargets?.averageCaseSize &&
+        entries?.SalesTargets?.numberOfWeeks
+    );
+
+    if (hasSalesTargetEntries) {
+      navigation.navigate("tabs", { screen: "Daily Activity" });
+      return;
+    }
+
+    navigation.navigate("Sales");
+  };
 
   return (
     <SafeAreaView style={styles.backgroundStyle}>
+      <Loader loading={isEntriesLoading} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -107,7 +134,7 @@ const Home = ({ navigation }) => {
           bounces={false}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={moduleConfig.assets.logo}
             style={{ alignSelf: "center", width: 220, height: 220 }}
           />
 
@@ -123,7 +150,7 @@ const Home = ({ navigation }) => {
             My Sales Coach
           </Text> */}
           <Image
-            source={require("../../assets/welcome.png")}
+            source={moduleConfig.assets.welcome}
             style={{ alignSelf: "center" }}
           />
 
@@ -177,22 +204,22 @@ const Home = ({ navigation }) => {
 
           <View style={{ marginTop: 30 }}>
             <Module
-              bg={require("../../assets/1.png")}
-              fg={require("../../assets/1a.png")}
+              bg={moduleConfig.assets.homeCards.salesBg}
+              fg={moduleConfig.assets.homeCards.salesFg}
               text={"Track sales activity"}
               navigation={navigation}
-              routeName={"Agent"}
+              onPress={openSalesActivity}
             />
             <Module
-              bg={require("../../assets/2.png")}
-              fg={require("../../assets/2a.png")}
+              bg={moduleConfig.assets.homeCards.coachBg}
+              fg={moduleConfig.assets.homeCards.coachFg}
               text={"Ask my coach"}
               navigation={navigation}
               routeName={"Coach"}
             />
             <Module
-              bg={require("../../assets/3.png")}
-              fg={require("../../assets/3a.png")}
+              bg={moduleConfig.assets.homeCards.masterclassBg}
+              fg={moduleConfig.assets.homeCards.masterclassFg}
               text={"Watch masterclass"}
               navigation={navigation}
               routeName={"Agent"}

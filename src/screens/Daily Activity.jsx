@@ -35,6 +35,7 @@ import Loader from "../components/Loader";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { calcPercentage } from "../utils/formatPercentage";
 import { gamificationApi } from "../api/gamification";
+import { getModuleConfig } from "../constants/moduleConfig";
 
 // Video data for PAPS - matches Masterclass videos
 const videoData = {
@@ -466,7 +467,9 @@ const Activity = ({
 const DailyActivity = ({ navigation }) => {
   const entries = useSelector((state) => state.Entries);
   const token = useSelector((state) => state.User?.token);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const dispatch = useDispatch();
+  const moduleConfig = getModuleConfig(selectedModule);
 
   const [loading, setLoading] = useState(true);
 
@@ -571,7 +574,7 @@ const DailyActivity = ({ navigation }) => {
           style={styles.scrollViewStyle}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={moduleConfig.assets.logo}
             style={{ alignSelf: "center", width: 220, height: 220 }}
           />
           {/* <Text

@@ -2,6 +2,7 @@ import {
   CardStyleInterpolators,
   createStackNavigator,
 } from "@react-navigation/stack";
+import React, { useMemo } from "react";
 import Home from "../screens/home";
 import {
   createDrawerNavigator,
@@ -48,26 +49,19 @@ import AdminGamification from "../screens/AdminGamification";
 import GamificationDashboard from "../screens/GamificationDashboard";
 import ManagerDashboard from "../screens/ManagerDashboard";
 import ManagerLiveMap from "../screens/ManagerLiveMap";
+import ModulePicker from "../screens/ModulePicker";
+import { getInitialRouteForRole, getModuleConfig } from "../constants/moduleConfig";
+import { clearSelectedModule } from "../redux/features/moduleSlice";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tabs = createBottomTabNavigator();
 
-// Drawer-only colors (not affecting other screens)
-const DRAWER_COLORS = {
-  accent: "#f7a11f",
-  accentLight: "#ffc107",
-  gradientStart: "#3871c1",
-  gradientMiddle: "#2d5a9e",
-  gradientEnd: "#1e3a5f",
-  success: "#10b981",
-  danger: "#ef4444",
-};
-
 // Icon mapping for drawer items
 const getIconForRoute = (routeName) => {
   const icons = {
+    "GITSA Home": { component: MaterialCommunityIcons, name: "view-grid-outline" },
     Home: { component: Feather, name: "home" },
     tabs: { component: MaterialCommunityIcons, name: "view-dashboard-outline" },
     Sales: { component: Ionicons, name: "stats-chart-outline" },
@@ -91,7 +85,14 @@ const getIconForRoute = (routeName) => {
 
 function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
   const user = useSelector((state) => state.User);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const currentRouteName = state?.routes[state?.index]?.name;
+  const moduleConfig = getModuleConfig(selectedModule);
+  const drawerColors = moduleConfig.drawerColors;
+  const drawerStyles = useMemo(
+    () => createDrawerStyles(drawerColors),
+    [drawerColors]
+  );
 
   const DrawerItem = ({ label, routeName, isActive }) => {
     const iconInfo = getIconForRoute(routeName);
@@ -129,7 +130,11 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
 
   return (
     <LinearGradient
-      colors={[DRAWER_COLORS.gradientStart, DRAWER_COLORS.gradientMiddle, DRAWER_COLORS.gradientEnd]}
+      colors={[
+        drawerColors.gradientStart,
+        drawerColors.gradientMiddle,
+        drawerColors.gradientEnd,
+      ]}
       style={drawerStyles.container}
     >
       {/* Decorative Elements */}
@@ -144,7 +149,7 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
         <View style={drawerStyles.logoSection}>
           <View style={drawerStyles.logoContainer}>
             <Image
-              source={require("../../assets/logo.png")}
+              source={moduleConfig.assets.logo}
               style={drawerStyles.logo}
               resizeMode="contain"
             />
@@ -196,7 +201,7 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
           activeOpacity={0.7}
         >
           <View style={drawerStyles.logoutIcon}>
-            <Feather name="log-out" size={20} color={DRAWER_COLORS.danger} />
+            <Feather name="log-out" size={20} color={drawerColors.danger} />
           </View>
           <Text style={drawerStyles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -205,7 +210,8 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
   );
 }
 
-const drawerStyles = StyleSheet.create({
+const createDrawerStyles = (drawerColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -264,7 +270,7 @@ const drawerStyles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     borderWidth: 2,
-    borderColor: DRAWER_COLORS.accent,
+    borderColor: drawerColors.accent,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -272,7 +278,7 @@ const drawerStyles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: DRAWER_COLORS.accent,
+    backgroundColor: drawerColors.accent,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -288,9 +294,9 @@ const drawerStyles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: DRAWER_COLORS.success,
+    backgroundColor: drawerColors.success,
     borderWidth: 2,
-    borderColor: DRAWER_COLORS.gradientMiddle,
+    borderColor: drawerColors.gradientMiddle,
   },
   userInfo: {
     flex: 1,
@@ -326,8 +332,8 @@ const drawerStyles = StyleSheet.create({
     marginBottom: 6,
   },
   navItemActive: {
-    backgroundColor: DRAWER_COLORS.accent,
-    shadowColor: DRAWER_COLORS.accent,
+    backgroundColor: drawerColors.accent,
+    shadowColor: drawerColors.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -391,7 +397,7 @@ const drawerStyles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 15,
-    color: DRAWER_COLORS.danger,
+    color: drawerColors.danger,
     fontWeight: "600",
   },
 });
@@ -448,16 +454,19 @@ const DrawerNav = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const entries = useSelector((state) => state.Entries);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
+    dispatch(clearSelectedModule());
     dispatch(resetEntries());
     dispatch(resetChat());
     dispatch(resetGamification());
   };
 
   const agentRoutes = [
+    { name: "GITSA Home", label: "GITSA Home" },
     { name: "Home", label: "Home" },
     { name: "Dashboard", label: "Dashboard" },
     { name: "tabs", label: "Overview" },
@@ -478,9 +487,7 @@ const DrawerNav = () => {
           routes={agentRoutes}
         />
       )}
-      initialRouteName={
-        entries?.SalesTargets?.averageCaseSize ? "tabs" : "Sales"
-      }
+      initialRouteName="Home"
       screenOptions={{
         title: "",
         headerStyle: {
@@ -506,6 +513,14 @@ const DrawerNav = () => {
         ),
       }}
     >
+      <Drawer.Screen
+        name="GITSA Home"
+        component={ModulePicker}
+        options={{
+          drawerLabel: "GITSA Home",
+          headerShown: false,
+        }}
+      />
       <Drawer.Screen
         name="Home"
         component={Home}
@@ -591,12 +606,14 @@ const ManagerDrawerNav = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
+    dispatch(clearSelectedModule());
     dispatch(resetEntries());
     dispatch(resetChat());
     dispatch(resetGamification());
   };
 
   const managerRoutes = [
+    { name: "GITSA Home", label: "GITSA Home" },
     { name: "Dashboard", label: "Dashboard" },
     { name: "My Agents", label: "My Agents" },
     { name: "Live Locations", label: "Live Locations" },
@@ -639,6 +656,14 @@ const ManagerDrawerNav = () => {
         ),
       }}
     >
+      <Drawer.Screen
+        name="GITSA Home"
+        component={ModulePicker}
+        options={{
+          drawerLabel: "GITSA Home",
+          headerShown: false,
+        }}
+      />
       <Drawer.Screen
         name="Dashboard"
         component={ManagerDashboard}
@@ -688,12 +713,14 @@ const CoachDrawer = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
+    dispatch(clearSelectedModule());
     dispatch(resetEntries());
     dispatch(resetChat());
     dispatch(resetGamification());
   };
 
   const coachRoutes = [
+    { name: "GITSA Home", label: "GITSA Home" },
     { name: "Home", label: "Home" },
     { name: "Profession", label: "Profession" },
     { name: "ChatCoach", label: "Chat" },
@@ -738,6 +765,14 @@ const CoachDrawer = () => {
       }}
     >
       <Drawer.Screen
+        name="GITSA Home"
+        component={ModulePicker}
+        options={{
+          drawerLabel: "GITSA Home",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
         name="Home"
         component={Home}
         options={{
@@ -770,12 +805,14 @@ const AdminDrawerNav = () => {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
     dispatch(logoutUser());
+    dispatch(clearSelectedModule());
     dispatch(resetEntries());
     dispatch(resetChat());
     dispatch(resetGamification());
   };
 
   const adminRoutes = [
+    { name: "GITSA Home", label: "GITSA Home" },
     { name: "Admin Console", label: "Admin Console" },
     { name: "Profile", label: "Profile" },
   ];
@@ -816,6 +853,14 @@ const AdminDrawerNav = () => {
       }}
     >
       <Drawer.Screen
+        name="GITSA Home"
+        component={ModulePicker}
+        options={{
+          drawerLabel: "GITSA Home",
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
         name="Admin Console"
         component={AdminGamification}
         options={{
@@ -852,24 +897,23 @@ const CoachStack = () => {
 
 export default AppStack = () => {
   const role = useSelector((state) => state.User?.role);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const navigation = useNavigation();
 
   return (
     <Stack.Navigator
-      initialRouteName={
-        role === "agent" ? "Home" : role === "manager" ? "Manager" : "Admin"
-      }
+      initialRouteName="GITSA Home"
       screenOptions={{
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
     >
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="GITSA Home"
+        component={ModulePicker}
+      />
       {role === "agent" && (
         <>
-          <Stack.Screen
-            options={{ headerShown: false }}
-            name="Home"
-            component={Home}
-          />
           <Stack.Screen
             options={{ headerShown: false }}
             name="Agent"

@@ -31,8 +31,16 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { formatPercentage } from "../utils/formatPercentage";
 import { getMalaysianDateString } from "../utils/currentDate&Day";
 import { Button } from "react-native-paper";
+import { getModuleConfig } from "../constants/moduleConfig";
 
-const Category = ({ goal, achieved, text, backgroundColor }) => {
+const Category = ({
+  goal,
+  achieved,
+  text,
+  backgroundColor,
+  goalImage,
+  achievedImage,
+}) => {
   return (
     <View
       style={{
@@ -48,7 +56,7 @@ const Category = ({ goal, achieved, text, backgroundColor }) => {
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Image
-          source={require("../../assets/goal1.png")}
+          source={goalImage}
           style={{
             marginRight: 2,
             width: 45,
@@ -79,7 +87,7 @@ const Category = ({ goal, achieved, text, backgroundColor }) => {
 
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Image
-          source={require("../../assets/achieved1.png")}
+          source={achievedImage}
           style={{
             marginRight: 2,
             width: 40,
@@ -174,6 +182,7 @@ const ImprovementPlan = ({ item, deletePlan }) => {
 
 const EffectivenessReport = () => {
   const entries = useSelector((state) => state.Entries);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const navigation = useNavigation();
   const token = useSelector((state) => state.User?.token);
   const dispatch = useDispatch();
@@ -183,6 +192,7 @@ const EffectivenessReport = () => {
   const [title, setTitle] = useState("");
   const [subTitle, setSubTitle] = useState("");
   const [description, setDescription] = useState("");
+  const moduleConfig = getModuleConfig(selectedModule);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -380,6 +390,8 @@ const EffectivenessReport = () => {
               100
             }
             backgroundColor={"#ffca08"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
 
           <Text
@@ -398,6 +410,8 @@ const EffectivenessReport = () => {
             goal={calculatePresentationRatioGoal(entries)}
             achieved={calculatePresentationRatioAchieved(entries)}
             backgroundColor={"#cb6be5"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
 
           <Text
@@ -416,6 +430,8 @@ const EffectivenessReport = () => {
             goal={calculateSalesRatioGoal(entries)}
             achieved={calculateSalesRatioAchieved(entries)}
             backgroundColor={"#00bf63"}
+            goalImage={moduleConfig.assets.goal}
+            achievedImage={moduleConfig.assets.achieved}
           />
         </View>
 

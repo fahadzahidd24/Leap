@@ -6,12 +6,16 @@ import { coachingPrompts } from '../../constants/coachingPrompts';
 import { simulationPrompts } from '../../constants/simulationPrompts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { getModuleConfig } from '../../constants/moduleConfig';
 
 const ChatCoach = ({ navigation }) => {
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchQuerySimulation, setSearchQuerySimulation] = useState('');
   const [chatQuery, setChatQuery] = useState('');
   const [profession, setProfession] = useState("");
+  const moduleConfig = getModuleConfig(selectedModule);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,7 +89,7 @@ const ChatCoach = ({ navigation }) => {
         alwaysBounceVertical={false}
         bounces={false}
       >
-        <Image source={require('../../../assets/logo.png')} style={{ width: 220, height: 220 }} />
+        <Image source={moduleConfig.assets.logo} style={{ width: 220, height: 220 }} />
         <View style={{ width: "80%", marginVertical: "5%" }}>
           <Text style={{
             textAlign: "center",

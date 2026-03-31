@@ -17,7 +17,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { theme } from "../constants/theme";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { privateApi, publicURL } from "../api/axios";
+import { privateSharedApi, publicURL } from "../api/axios";
 import { logoutUser, updateUserProfile } from "../redux/features/userSlice";
 import { resetEntries } from "../redux/features/entriesSlice";
 import { resetChat } from "../redux/features/chatSlice";
@@ -136,13 +136,13 @@ const Profile = ({ navigation }) => {
     });
 
     try {
-      await privateApi(user.token).put("/profile/picture", formData, {
+      await privateSharedApi(user.token).put("/profile/picture", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      const profileResponse = await privateApi(user.token).get("/profile");
+      const profileResponse = await privateSharedApi(user.token).get("/profile");
       if (profileResponse.data?.user) {
         dispatch(updateUserProfile(profileResponse.data.user));
         Alert.alert("Success", "Profile picture updated successfully!");
@@ -206,7 +206,7 @@ const Profile = ({ navigation }) => {
     setDeleting(true);
 
     try {
-      await privateApi(user.token).delete("/profile/delete");
+      await privateSharedApi(user.token).delete("/profile/delete");
       await AsyncStorage.removeItem("profession");
       dispatch(logoutUser());
       dispatch(resetEntries());

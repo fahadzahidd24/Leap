@@ -13,8 +13,22 @@ const LeapTextInput = ({
   isError,
   isMultiline,
   isDisabled,
+  textColor,
+  accentColor,
+  backgroundColor,
+  borderColor,
+  activeBorderColor,
 }) => {
   const [hidePassword, setHidePassword] = useState(true);
+  const resolvedTextColor = textColor || "#000";
+  const resolvedAccentColor = accentColor || theme.colors.background;
+  const resolvedBackgroundColor = backgroundColor || "#FFF";
+  const resolvedBorderColor = isError
+    ? "#F00"
+    : borderColor || resolvedBackgroundColor;
+  const resolvedActiveBorderColor =
+    activeBorderColor || resolvedAccentColor || resolvedBorderColor;
+
   return (
     <TextInput
       mode="flat"
@@ -27,19 +41,19 @@ const LeapTextInput = ({
           <TextInput.Icon
             icon="eye"
             onPress={() => setHidePassword(!hidePassword)}
-            color={"#888888"}
+            color={resolvedAccentColor}
           />
         ) : (
           <TextInput.Icon
             icon="eye-off"
             onPress={() => setHidePassword(!hidePassword)}
-            color={"#888888"}
+            color={resolvedAccentColor}
           />
         ))
       }
       disabled={isDisabled}
       label={label}
-      textColor="#000"
+      textColor={resolvedTextColor}
       value={value}
       keyboardType={keyboardType}
       autoCapitalize="sentences"
@@ -48,18 +62,21 @@ const LeapTextInput = ({
       contentStyle={styles.contentStyle}
       theme={{
         colors: {
-          onSurfaceVariant: "#b2b2b2",
+          onSurfaceVariant: resolvedAccentColor,
+          primary: resolvedAccentColor,
         },
       }}
-      underlineColor={theme.colors.background}
-      activeUnderlineColor={theme.colors.background}
+      underlineColor={resolvedAccentColor}
+      activeUnderlineColor={resolvedAccentColor}
       underlineStyle={{ opacity: 0 }}
       style={[
         styles.textInputStyle,
         {
-          backgroundColor: "#FFF",
-          borderColor: isError ? "#F00" : "#FFF",
-          borderWidth: isError ? 1 : 0,
+          backgroundColor: resolvedBackgroundColor,
+          color: resolvedTextColor,
+          borderColor: resolvedBorderColor,
+          borderWidth: 1,
+          shadowColor: resolvedActiveBorderColor,
           borderTopLeftRadius: 35,
           borderTopRightRadius: 35,
           borderBottomLeftRadius: 35,
@@ -76,12 +93,10 @@ const styles = StyleSheet.create({
   contentStyle: {
     fontSize: 18,
     fontFamily: "",
-    color: "#000",
   },
   textInputStyle: {
     fontSize: 18,
     fontFamily: "",
     marginVertical: 13,
-    color: "#000",
   },
 });

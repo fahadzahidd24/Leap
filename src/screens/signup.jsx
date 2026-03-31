@@ -128,7 +128,7 @@ const SignUp = ({ navigation }) => {
           style={styles.scrollViewStyle}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={require("../../assets/gitsaLogo.png")}
             style={[styles.logo, { width: 220, height: 220 }]}
           />
           {/* <Text style={styles.title}>My Sales Coach</Text> */}

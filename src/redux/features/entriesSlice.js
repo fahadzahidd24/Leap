@@ -5,7 +5,17 @@ export const entriesSlice = createSlice({
   initialState: null,
   reducers: {
     setEntries: (state, action) => {
-      return { ...state, ...action.payload.entries };
+      return {
+        ...(state || {}),
+        ...(action.payload.entries || {}),
+        __loaded: true,
+      };
+    },
+    markEntriesHydrated: (state) => {
+      return {
+        ...(state || {}),
+        __loaded: true,
+      };
     },
     setDailyAchieved: (state, action) => {
       return { ...state, daily_achieved: action.payload.daily };
@@ -28,6 +38,7 @@ export const entriesSlice = createSlice({
 // Export all actions
 export const {
   setEntries,
+  markEntriesHydrated,
   setDailyAchieved,
   setWeeklyAchieved,
   setMonthlyAchieved,

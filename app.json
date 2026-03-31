@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "Leap",
-    "slug": "leap",
+    "name": "GITSA",
+    "slug": "gitsa",
     "version": "35.0.0",
     "orientation": "portrait",
-    "scheme": "leap",
-    "icon": "./assets/appIcon.png",
+    "scheme": "gitsa",
+    "icon": "./assets/gitsaLogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splashScreen.png",
+      "image": "./assets/gitsaLogo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#3871c1"
+      "backgroundColor": "#cfe9f6"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gitsa.Leap",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized content and improve your app experience."
@@ -24,8 +24,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/appIcon.png",
-        "backgroundColor": "#3871c1"
+        "foregroundImage": "./assets/gitsaLogo.png",
+        "backgroundColor": "#cfe9f6"
       },
       "package": "com.gitsa.Leap",
       "versionCode": 2,
@@ -61,11 +61,11 @@
         }
       ]
     ],
-    "owner": "goaler1",
     "extra": {
       "eas": {
-        "projectId": "3102d521-6fc9-4a0d-89f6-e2e4594a4b18"
+        "projectId": "e71b2443-86d8-46db-aa4f-627d5616a7ac"
       }
-    }
+    },
+    "owner": "fahadzahidd24"
   }
 }

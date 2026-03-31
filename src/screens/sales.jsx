@@ -21,12 +21,15 @@ import { setEntries } from "../redux/features/entriesSlice";
 import { isEmpty } from "../utils/isEmpty";
 import Loader from "../components/Loader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getModuleConfig } from "../constants/moduleConfig";
 
 const Sales = ({ navigation }) => {
   const token = useSelector((state) => state.User?.token);
   const user = useSelector((state) => state.User);
   const entries = useSelector((state) => state.Entries);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const dispatch = useDispatch();
+  const moduleConfig = getModuleConfig(selectedModule);
 
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const [selectedDays, setSelectedDays] = useState([]);
@@ -212,7 +215,7 @@ const Sales = ({ navigation }) => {
           style={styles.scrollViewStyle}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={moduleConfig.assets.logo}
             style={{ alignSelf: "center", width: 220, height: 220 }}
           />
 

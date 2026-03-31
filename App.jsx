@@ -13,8 +13,12 @@ import AuthStack from "./src/navigation/AuthStack";
 import { logoutUser, setUser } from "./src/redux/features/userSlice";
 import { store } from "./src/redux/store";
 import { LogBox } from 'react-native';
-import { privateApi } from "./src/api/axios";
-import { resetEntries, setEntries } from "./src/redux/features/entriesSlice";
+import { privateApi, privateSharedApi } from "./src/api/axios";
+import {
+  markEntriesHydrated,
+  resetEntries,
+  setEntries,
+} from "./src/redux/features/entriesSlice";
 import * as Linking from "expo-linking";
 import { resetChat } from "./src/redux/features/chatSlice";
 import { requestTrackingPermissionsAsync, getTrackingPermissionsAsync } from "expo-tracking-transparency";
@@ -28,11 +32,19 @@ import {
   setAgentTier,
   setExpoDeviceState,
 } from "./src/redux/features/gamificationSlice";
+import {
+  ACTIVE_MODULE_STORAGE_KEY,
+  clearSelectedModule,
+  setSelectedModule,
+} from "./src/redux/features/moduleSlice";
 import { gamificationApi } from "./src/api/gamification";
 import { registerGamificationDevice } from "./src/utils/registerGamificationDevice";
 import { buildGamificationNotification } from "./src/utils/gamificationNotifications";
+import { applyModuleTheme } from "./src/constants/theme";
 import useSocket from "./src/hooks/useSocket";
 LogBox.ignoreAllLogs();
+
+const MOBILE_ALLOWED_ROLES = ["agent", "manager"];
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,12 +58,14 @@ function StartUp() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const user = useSelector((state) => state.User);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const { sendEvent } = useSocket();
   const [loading, setLoading] = useState(true);
-  const appOpenTrackedRef = useRef(false);
+  const appOpenTrackedRef = useRef(null);
   const locationSubscriptionRef = useRef(null);
   const appStateRef = useRef(AppState.currentState);
-  const lastMotivationNotificationAtRef = useRef(0);
+  const hasShownMotivationForActiveStateRef = useRef(false);
+  const isShowingMotivationNotificationRef = useRef(false);
 
   const loadUser = useCallback(async () => {
     try {
@@ -60,15 +74,27 @@ function StartUp() {
       if (storedUserString) {
         const parsedUser = JSON.parse(storedUserString);
         dispatch(setUser({ user: parsedUser }));
+
+        const storedModule = await AsyncStorage.getItem(ACTIVE_MODULE_STORAGE_KEY);
+        if (storedModule) {
+          dispatch(setSelectedModule(storedModule));
+        }
         
         // Fetch fresh user data from server
         if (parsedUser?.token) {
           try {
-            const res = await privateApi(parsedUser.token).get("/profile");
+            const res = await privateSharedApi(parsedUser.token).get("/profile");
             if (res.data?.user) {
               // Merge server data with stored token
               const updatedUser = { ...res.data.user, token: parsedUser.token };
               dispatch(setUser({ user: updatedUser }));
+
+              if (
+                storedModule &&
+                !updatedUser?.enabledModules?.includes?.(storedModule)
+              ) {
+                dispatch(clearSelectedModule());
+              }
             }
           } catch (profileError) {
             console.error("Error fetching user profile:", profileError);
@@ -82,10 +108,33 @@ function StartUp() {
     }
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!user?.token || !user?.role || MOBILE_ALLOWED_ROLES.includes(user.role)) {
+      return;
+    }
+
+    Alert.alert(
+      "Mobile Access Restricted",
+      "Only agents and managers can use the mobile app. Admins must sign in through the web portal.",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            dispatch(logoutUser());
+            dispatch(clearSelectedModule());
+            dispatch(resetEntries());
+            dispatch(resetChat());
+            dispatch(resetGamification());
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }, [dispatch, user?.role, user?.token]);
+
   const loadEntries = useCallback(async () => {
-    if (user?.token) {
+    if (user?.token && selectedModule) {
       try {
-        setLoading(true);
         const [entriesRes, scorecard, dailyMissions, notifications] =
           await Promise.all([
             privateApi(user.token).get("/entries"),
@@ -126,10 +175,10 @@ function StartUp() {
           );
         }
       } finally {
-        setLoading(false);
+        dispatch(markEntriesHydrated());
       }
     }
-  }, [user, dispatch]); // Add user as a dependency here
+  }, [dispatch, selectedModule, user]); // Add user as a dependency here
 
   // useEffect to call loadEntries when user changes
   useEffect(() => {
@@ -138,20 +187,24 @@ function StartUp() {
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [loadUser]);
+
+  useEffect(() => {
+    applyModuleTheme(selectedModule);
+  }, [selectedModule]);
 
   // Track app open when user is logged in (on app start or after login)
   useEffect(() => {
-    if (user?.token && !appOpenTrackedRef.current) {
-      appOpenTrackedRef.current = true;
+    if (user?.token && selectedModule && appOpenTrackedRef.current !== selectedModule) {
+      appOpenTrackedRef.current = selectedModule;
       privateApi(user.token)
         .post("/tracking/app-open")
         .catch((err) => console.error("App-open tracking error:", err));
     }
-  }, [user?.token]);
+  }, [selectedModule, user?.token]);
 
   useEffect(() => {
-    if (!user?.token || loading) {
+    if (!user?.token || !selectedModule || loading) {
       return;
     }
 
@@ -162,7 +215,7 @@ function StartUp() {
       .catch((error) => {
         console.error("Error registering gamification device:", error);
       });
-  }, [dispatch, loading, user?.token]);
+  }, [dispatch, loading, selectedModule, user?.token]);
 
   useEffect(() => {
     const ensureNotificationPermission = async () => {
@@ -178,14 +231,18 @@ function StartUp() {
     };
 
     const maybeShowMotivationNotification = async () => {
-      if (!user?.token || loading) {
+      if (
+        !user?.token ||
+        !selectedModule ||
+        loading ||
+        hasShownMotivationForActiveStateRef.current ||
+        isShowingMotivationNotificationRef.current
+      ) {
         return;
       }
 
-      const now = Date.now();
-      if (now - lastMotivationNotificationAtRef.current < 10000) {
-        return;
-      }
+      isShowingMotivationNotificationRef.current = true;
+      hasShownMotivationForActiveStateRef.current = true;
 
       try {
         const granted = await ensureNotificationPermission();
@@ -216,11 +273,9 @@ function StartUp() {
           tier,
         });
 
-        lastMotivationNotificationAtRef.current = now;
-
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: message.title,
+            title: `${selectedModule}: ${message.title}`,
             body: message.body,
             sound: "default",
           },
@@ -228,6 +283,8 @@ function StartUp() {
         });
       } catch (error) {
         console.error("Error showing motivation notification:", error);
+      } finally {
+        isShowingMotivationNotificationRef.current = false;
       }
     };
 
@@ -240,6 +297,7 @@ function StartUp() {
       appStateRef.current = nextAppState;
 
       if (wasBackgrounded && nextAppState === "active") {
+        hasShownMotivationForActiveStateRef.current = false;
         maybeShowMotivationNotification();
       }
     });
@@ -247,7 +305,7 @@ function StartUp() {
     return () => {
       subscription.remove();
     };
-  }, [dispatch, loading, user?.fullName, user?.token]);
+  }, [dispatch, loading, selectedModule, user?.fullName, user?.token]);
 
   useEffect(() => {
     let isMounted = true;
@@ -255,6 +313,7 @@ function StartUp() {
     const startLocationTracking = async () => {
       if (
         !user?.token ||
+        !selectedModule ||
         user?.role !== "agent" ||
         !user?._id ||
         !user?.companyName
@@ -323,6 +382,7 @@ function StartUp() {
     user?.fullName,
     user?.profilePic,
     user?.role,
+    selectedModule,
     user?.token,
   ]);
 
@@ -401,7 +461,9 @@ function StartUp() {
     );
   }
 
-  return user?.token ? <AppStack /> : <AuthStack />;
+  return user?.token && MOBILE_ALLOWED_ROLES.includes(user?.role)
+    ? <AppStack />
+    : <AuthStack />;
 }
 
 export default function App() {

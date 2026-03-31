@@ -12,6 +12,8 @@ import {
 import { theme } from "../constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import { getModuleConfig } from "../constants/moduleConfig";
 
 const videos = [
   {
@@ -113,6 +115,8 @@ const VideoCard = ({ video, onPress }) => {
 };
 
 const Masterclass = ({ navigation }) => {
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleConfig = getModuleConfig(selectedModule);
   const handleVideoPress = (video) => {
     navigation.navigate("VideoPlayer", {
       videoKey: video.key,
@@ -149,7 +153,7 @@ const Masterclass = ({ navigation }) => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <Image
-            source={require("../../assets/logo.png")}
+            source={moduleConfig.assets.logo}
             style={styles.logo}
             resizeMode="contain"
           />

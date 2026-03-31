@@ -7,10 +7,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import Loader from '../../components/Loader'
 import { setProfession, setUser } from '../../redux/features/userSlice'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getModuleConfig } from '../../constants/moduleConfig'
 
 const Profession =  ({ navigation }) => {
   const token = useSelector((state) => state.User?.token);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const [selectedProfession, setSelectedProfession] = useState("")
+  const moduleConfig = getModuleConfig(selectedModule);
 
   useEffect(()=> {
     const getProfession = async () => {
@@ -60,7 +63,7 @@ const Profession =  ({ navigation }) => {
         {loading && <Loader />}
         <View>
           <Image
-            source={require("../../../assets/logo.png")}
+            source={moduleConfig.assets.logo}
             style={{ alignSelf: "center", width: 220, height: 220 }}
           />
           {/* <Text

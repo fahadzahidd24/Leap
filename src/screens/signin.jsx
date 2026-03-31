@@ -13,16 +13,21 @@ import {
   View,
 } from "react-native";
 import React, { useState } from "react";
-import { theme } from "../constants/theme.js";
 import { Button } from "react-native-paper";
 import LeapTextInput from "../components/LeapTextInput.jsx";
 import { publicApi } from "../api/axios.js";
 import { useDispatch } from "react-redux";
-import { setProfession, setUser } from "../redux/features/userSlice.js";
+import { setUser } from "../redux/features/userSlice.js";
+import { clearSelectedModule } from "../redux/features/moduleSlice.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 
 const PRIVACY_POLICY_URL = "https://gitsagroup.com/strides-privacy-policy/";
 const TERMS_OF_USE_URL = "https://gitsagroup.com/terms-of-use/";
+const GITSA_ACCENT = "#e6634c";
+const INPUT_BORDER = "rgba(15, 23, 42, 0.16)";
+const TEXT_PRIMARY = "#0f172a";
+const TEXT_MUTED = "#64748b";
 
 const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -49,24 +54,20 @@ const SignIn = ({ navigation }) => {
     }
     setLoading(true);
     publicApi
-      .post("/login", { email: normalizedEmail, password })
+      .post("/mobile/login", { email: normalizedEmail, password })
       .then(async(res) => {
         const user = res.data.user;
-        if (
-          user?.role !== "agent" &&
-          user?.role !== "manager" &&
-          user?.role !== "admin"
-        ) {
+        if (user?.role !== "agent" && user?.role !== "manager") {
           Alert.alert(
             "Login Failed",
-            "You are not authorized to access this app."
+            "Only agents and managers can sign in to the mobile app."
           );
           return;
         }
 
         dispatch(setUser({ user }));
+        dispatch(clearSelectedModule());
         await AsyncStorage.setItem("profession", user?.profession);
-        // dispatch(setProfession(user?.profession));
       })
       .catch((err) => {
         console.error(err);
@@ -78,33 +79,40 @@ const SignIn = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.backgroundStyle}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-        enabled
-      >
-        <StatusBar
-          barStyle={"light-content"}
-          backgroundColor={theme.colors.background}
-        />
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          keyboardShouldPersistTaps={"handled"}
-          contentContainerStyle={{
-            justifyContent: "center",
-            paddingBottom: 100,
-            paddingHorizontal: 10,
-            flexGrow: 1,
-            // backgroundColor: "yellow",
-          }}
-          bounces={false}
-          style={styles.scrollViewStyle}
+    <LinearGradient
+      colors={["#cfe9f6", "#d9eef7", "#f1ddd7"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientBackground}
+    >
+      <SafeAreaView style={styles.backgroundStyle}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+          enabled
         >
-          <Image
-            source={require("../../assets/logo.png")}
-            style={{ alignSelf: "center", width: 270, height: 270 }}
+          <StatusBar
+            barStyle={"dark-content"}
+            backgroundColor={"#cfe9f6"}
           />
+          <ScrollView
+            contentInsetAdjustmentBehavior="automatic"
+            keyboardShouldPersistTaps={"handled"}
+            contentContainerStyle={{
+              justifyContent: "center",
+              paddingBottom: 100,
+              paddingHorizontal: 10,
+              flexGrow: 1,
+            }}
+            bounces={false}
+            style={styles.scrollViewStyle}
+          >
+            <View style={styles.logoCard}>
+              <Image
+                source={require("../../assets/gitsaLogo.png")}
+                style={{ alignSelf: "center", width: 220, height: 120, resizeMode: "contain" }}
+              />
+            </View>
 
           {/* <Text
             style={{
@@ -120,15 +128,26 @@ const SignIn = ({ navigation }) => {
           <Text
             style={{
               textAlign: "center",
-              fontSize: 24,
-              fontStyle: "italic",
-              // fontFamily: "",
+              fontSize: 20,
+              fontWeight: "700",
               marginHorizontal: 5,
-              marginTop: 20,
-              color: theme.colors.secondary,
+              marginTop: 10,
+              color: TEXT_PRIMARY,
             }}
           >
-            You Get What You Track
+            Welcome to GITSA!
+          </Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 15,
+              lineHeight: 22,
+              marginHorizontal: 18,
+              marginTop: 8,
+              color: TEXT_MUTED,
+            }}
+          >
+            Sign in once to access LEAP and QUEST through one shared GITSA shell.
           </Text>
           <View
             style={{
@@ -150,6 +169,10 @@ const SignIn = ({ navigation }) => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              textColor={TEXT_PRIMARY}
+              accentColor={TEXT_PRIMARY}
+              borderColor={INPUT_BORDER}
+              activeBorderColor={TEXT_PRIMARY}
               onChangeText={(text) => {
                 setEmail(text);
                 setEmailError(false);
@@ -160,6 +183,10 @@ const SignIn = ({ navigation }) => {
               label={"Password"}
               secureTextEntry={true}
               value={password}
+              textColor={TEXT_PRIMARY}
+              accentColor={TEXT_PRIMARY}
+              borderColor={INPUT_BORDER}
+              activeBorderColor={TEXT_PRIMARY}
               onChangeText={(text) => setPassword(text)}
               isError={passwordError}
             />
@@ -177,7 +204,7 @@ const SignIn = ({ navigation }) => {
                 borderRadius: 35,
                 paddingVertical: 6,
                 marginVertical: 20,
-                backgroundColor: "#ff914d",
+                backgroundColor: GITSA_ACCENT,
               }}
               onPress={signinFunc}
             >
@@ -220,18 +247,35 @@ const SignIn = ({ navigation }) => {
         />
       )}
     </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 export default SignIn;
 
 const styles = StyleSheet.create({
+  gradientBackground: {
+    flex: 1,
+  },
   backgroundStyle: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: "transparent",
     flex: 1,
   },
   scrollViewStyle: {
     padding: 25,
+  },
+  logoCard: {
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.56)",
+    borderRadius: 28,
+    paddingHorizontal: 22,
+    paddingVertical: 18,
+    marginBottom: 8,
+    shadowColor: "#94a3b8",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 4,
   },
   legalLinksContainer: {
     marginTop: 30,
@@ -244,11 +288,11 @@ const styles = StyleSheet.create({
   },
   legalText: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(15, 23, 42, 0.6)",
   },
   legalLink: {
     fontSize: 13,
-    color: "#ff914d",
+    color: GITSA_ACCENT,
     textDecorationLine: "underline",
   },
 });

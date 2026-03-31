@@ -1,8 +1,12 @@
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { theme } from '../../constants/theme'
+import { useSelector } from 'react-redux'
+import { getModuleConfig } from '../../constants/moduleConfig'
 
 const Disclaimer = ({navigation}) => {
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleConfig = getModuleConfig(selectedModule);
   return (
     <KeyboardAvoidingView
     style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -18,7 +22,7 @@ const Disclaimer = ({navigation}) => {
     >
       <View>
         <Image
-          source={require("../../../assets/logo.png")}
+          source={moduleConfig.assets.logo}
           style={{ alignSelf: "center", width: 220, height: 220 }}
         />
         {/* <Text
