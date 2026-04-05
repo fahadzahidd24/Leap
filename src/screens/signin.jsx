@@ -2,8 +2,8 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
-  Linking,
   Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { Button } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 import LeapTextInput from "../components/LeapTextInput.jsx";
 import { publicApi } from "../api/axios.js";
 import { useDispatch } from "react-redux";
@@ -21,9 +22,7 @@ import { setUser } from "../redux/features/userSlice.js";
 import { clearSelectedModule } from "../redux/features/moduleSlice.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-
-const PRIVACY_POLICY_URL = "https://gitsagroup.com/strides-privacy-policy/";
-const TERMS_OF_USE_URL = "https://gitsagroup.com/terms-of-use/";
+import { LEGAL_DOCUMENT_KEYS } from "../constants/legalDocuments.js";
 const GITSA_ACCENT = "#e6634c";
 const INPUT_BORDER = "rgba(15, 23, 42, 0.16)";
 const TEXT_PRIMARY = "#0f172a";
@@ -41,6 +40,10 @@ const SignIn = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
   const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+
+  const openLegalDocument = (documentKey) => {
+    navigation.navigate("legalDocument", { documentKey });
+  };
 
   const signinFunc = () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -107,9 +110,19 @@ const SignIn = ({ navigation }) => {
             bounces={false}
             style={styles.scrollViewStyle}
           >
+            <View style={styles.topBar}>
+              <Pressable
+                onPress={() => navigation.navigate("onboarding")}
+                style={styles.backButton}
+                hitSlop={10}
+              >
+                <Ionicons name="arrow-back" size={22} color={TEXT_PRIMARY} />
+              </Pressable>
+            </View>
+
             <View style={styles.logoCard}>
               <Image
-                source={require("../../assets/gitsaLogo.png")}
+                source={require("../../assets/GitsaLogoBlack.png")}
                 style={{ alignSelf: "center", width: 220, height: 120, resizeMode: "contain" }}
               />
             </View>
@@ -228,11 +241,19 @@ const SignIn = ({ navigation }) => {
             <View style={styles.legalLinksContainer}>
               <Text style={styles.legalText}>By signing in, you agree to our</Text>
               <View style={styles.legalLinksRow}>
-                <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+                <TouchableOpacity
+                  onPress={() =>
+                    openLegalDocument(LEGAL_DOCUMENT_KEYS.PRIVACY_POLICY)
+                  }
+                >
                   <Text style={styles.legalLink}>Privacy Policy</Text>
                 </TouchableOpacity>
                 <Text style={styles.legalText}> & </Text>
-                <TouchableOpacity onPress={() => Linking.openURL(TERMS_OF_USE_URL)}>
+                <TouchableOpacity
+                  onPress={() =>
+                    openLegalDocument(LEGAL_DOCUMENT_KEYS.TERMS_OF_USE)
+                  }
+                >
                   <Text style={styles.legalLink}>Terms of Use</Text>
                 </TouchableOpacity>
               </View>
@@ -264,12 +285,24 @@ const styles = StyleSheet.create({
   scrollViewStyle: {
     padding: 25,
   },
+  topBar: {
+    marginBottom: 8,
+    alignItems: "flex-start",
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.56)",
+  },
   logoCard: {
     alignSelf: "center",
     backgroundColor: "rgba(255,255,255,0.56)",
     borderRadius: 28,
     paddingHorizontal: 22,
-    paddingVertical: 18,
+    paddingVertical: 10,
     marginBottom: 8,
     shadowColor: "#94a3b8",
     shadowOffset: { width: 0, height: 10 },
