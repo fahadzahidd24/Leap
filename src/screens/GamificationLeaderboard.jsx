@@ -18,6 +18,7 @@ import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
   getBadgesByKeys,
+  getGamificationCopy,
   getLeaderboardBadgeMeta,
 } from "../constants/gamificationVisuals";
 import { setAgentLeaderboard } from "../redux/features/gamificationSlice";
@@ -31,15 +32,17 @@ const scopes = [
 
 const GamificationLeaderboard = ({ navigation, route }) => {
   const token = useSelector((state) => state.User?.token);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const leaderboard = useSelector((state) => state.Gamification.agent.leaderboard);
   const dispatch = useDispatch();
   const [scopeType, setScopeType] = useState("company");
   const [loading, setLoading] = useState(true);
+  const moduleCopy = getGamificationCopy(selectedModule);
   const leaderboardBadges = getBadgesByKeys([
     "role_model_signal",
     "execution_machine",
     "rising_performer",
-  ]);
+  ], selectedModule);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -129,7 +132,7 @@ const GamificationLeaderboard = ({ navigation, route }) => {
         >
           {leaderboard?.entries?.length ? (
             leaderboard.entries.map((entry) => {
-              const rankBadge = getLeaderboardBadgeMeta(entry.rank);
+              const rankBadge = getLeaderboardBadgeMeta(entry.rank, selectedModule);
 
               return (
                 <View key={`${entry.userId}-${entry.rank}`} style={styles.row}>
@@ -147,7 +150,13 @@ const GamificationLeaderboard = ({ navigation, route }) => {
                     </Text>
                   </View>
                   <View style={styles.rowMeta}>
-                    <Text style={styles.scoreText}>{entry.salesCount || 0} sales</Text>
+                    <Text style={styles.scoreText}>
+                      {entry.contractsCount ?? entry.salesCount ?? 0}{" "}
+                      {entry.contractsCount === 1 ||
+                      (entry.contractsCount == null && entry.salesCount === 1)
+                        ? moduleCopy.closedUnitSingular
+                        : moduleCopy.closedUnitPlural}
+                    </Text>
                     <Text
                       style={[
                         styles.movementText,

@@ -32,8 +32,15 @@ import {
 } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
 
-const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) => {
-  const showcaseBadges = getBadgesByKeys(badgeKeys);
+const MissionList = ({
+  title,
+  subtitle,
+  missions,
+  progressPercent,
+  badgeKeys,
+  selectedModule,
+}) => {
+  const showcaseBadges = getBadgesByKeys(badgeKeys, selectedModule);
 
   return (
     <GamificationCard
@@ -52,8 +59,8 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
       </View>
       {missions?.length ? (
         missions.map((mission, index) => {
-          const missionBadge = getMissionBadgeMeta(mission, index);
-          const missionTitle = getMissionDisplayTitle(mission, index);
+          const missionBadge = getMissionBadgeMeta(mission, index, selectedModule);
+          const missionTitle = getMissionDisplayTitle(mission, index, selectedModule);
           const missionProgressLabel = getMissionProgressLabel(mission);
           const missionProgressPercent = getMissionProgressPercent(mission);
           const missionRewardText = getMissionRewardText(mission);
@@ -117,6 +124,7 @@ const MissionList = ({ title, subtitle, missions, progressPercent, badgeKeys }) 
 
 const GamificationMissions = ({ navigation, route }) => {
   const token = useSelector((state) => state.User?.token);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const { dailyMissions, weeklyMissions } = useSelector(
     (state) => state.Gamification.agent
   );
@@ -172,6 +180,7 @@ const GamificationMissions = ({ navigation, route }) => {
           missions={dailyMissions?.missions}
           progressPercent={dailyMissions?.progressPercent}
           badgeKeys={MISSION_SHOWCASE_BADGE_KEYS.daily}
+          selectedModule={selectedModule}
         />
 
         <MissionList
@@ -180,6 +189,7 @@ const GamificationMissions = ({ navigation, route }) => {
           missions={weeklyMissions?.missions}
           progressPercent={weeklyMissions?.progressPercent}
           badgeKeys={MISSION_SHOWCASE_BADGE_KEYS.weekly}
+          selectedModule={selectedModule}
         />
       </ScrollView>
       {loading && <Loader />}

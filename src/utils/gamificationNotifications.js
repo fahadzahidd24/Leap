@@ -1,3 +1,5 @@
+import { getGamificationCopy } from "../constants/gamificationVisuals";
+
 const pickRandom = (items) => items[Math.floor(Math.random() * items.length)];
 
 export const buildGamificationNotification = ({
@@ -6,11 +8,14 @@ export const buildGamificationNotification = ({
   dailyMissions,
   leaderboard,
   tier,
+  selectedModule,
 }) => {
   const firstName = user?.fullName?.split(" ")?.[0] || "there";
   const daily = scorecard?.daily || {};
   const streak = scorecard?.streak || {};
   const currentRank = leaderboard?.currentUserRank?.rank;
+  const moduleCopy = getGamificationCopy(selectedModule);
+  const closedCount = daily?.stats?.contractsCount ?? daily?.stats?.salesCount ?? 0;
   const nextMission = dailyMissions?.missions?.find((mission) => !mission.completed);
   const completedMissionCount =
     dailyMissions?.missions?.filter((mission) => mission.completed)?.length || 0;
@@ -89,11 +94,13 @@ export const buildGamificationNotification = ({
     );
   }
 
-  if ((daily?.stats?.salesCount || 0) > 0) {
+  if (closedCount > 0) {
     candidates.push({
-      title: "Sales momentum",
-      body: `You've already logged ${daily.stats.salesCount} sale${
-        daily.stats.salesCount === 1 ? "" : "s"
+      title: `${moduleCopy.closedUnitTitle} momentum`,
+      body: `You've already logged ${closedCount} ${
+        closedCount === 1
+          ? moduleCopy.closedUnitSingular
+          : moduleCopy.closedUnitPlural
       }. Stay sharp and finish strong.`,
     });
   }

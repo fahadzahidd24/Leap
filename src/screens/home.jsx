@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -28,8 +29,10 @@ const Module = ({ navigation, text, bg, fg, routeName, onPress }) => {
         }
 
         if (text === "Watch masterclass") {
-          navigation.getParent?.()?.navigate("Masterclass");
-          navigation.navigate("Masterclass");
+          Alert.alert(
+            "Coming Soon",
+            "The masterclass module will be available in Q3 2026."
+          );
           return;
         }
 

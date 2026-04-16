@@ -8,10 +8,10 @@ import { resetGamification } from "../redux/features/gamificationSlice";
 import { clearSelectedModule } from "../redux/features/moduleSlice";
 import { MODULE_KEYS } from "../constants/moduleConfig";
 
-// const baseURL = "https://leaptechsolutions.com/api";
-// const publicURL = "https://leaptechsolutions.com/public";
-export const baseURL = "https://api.gitsagroup.com/api";
-const publicURL = "https://api.gitsagroup.com/public";
+export const baseURL = "https://gentle-cub-positively.ngrok-free.app/api";
+const publicURL = "https://gentle-cub-positively.ngrok-free.app/public";
+// export const baseURL = "https://api.gitsagroup.com/api";
+// const publicURL = "https://api.gitsagroup.com/public";
 
 const getModulePrefix = (moduleKey) =>
   moduleKey === MODULE_KEYS.QUEST ? "/quest" : "";

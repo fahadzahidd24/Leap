@@ -28,7 +28,7 @@ export const MODULE_CONFIGS = {
   [MODULE_KEYS.LEAP]: {
     key: MODULE_KEYS.LEAP,
     label: "LEAP",
-    subtitle: "Recruiting performance and gamification",
+    subtitle: "Real-Time Activity. Real Results.",
     lockedMessage:
       "This module is not included in your current plan. Please contact your company admin.",
     colors: {
@@ -74,7 +74,7 @@ export const MODULE_CONFIGS = {
   [MODULE_KEYS.QUEST]: {
     key: MODULE_KEYS.QUEST,
     label: "QUEST",
-    subtitle: "Quest workflow, coaching, and field execution",
+    subtitle: "Real-Time Pipeline. Real Growth.",
     lockedMessage:
       "This module is not included in your current plan. Please contact your company admin.",
     colors: {

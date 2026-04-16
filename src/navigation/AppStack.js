@@ -476,7 +476,6 @@ const DrawerNav = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
-  const isQuest = selectedModule === MODULE_KEYS.QUEST;
   const moduleConfig = getModuleConfig(selectedModule);
   const HomeScreen = selectedModule === MODULE_KEYS.QUEST ? QuestHome : Home;
   const SalesScreen = selectedModule === MODULE_KEYS.QUEST ? QuestSales : Sales;
@@ -493,16 +492,12 @@ const DrawerNav = () => {
   const agentRoutes = [
     { name: "GITSA Home", label: "GITSA Home" },
     { name: "Home", label: "Home" },
-    ...(!isQuest ? [{ name: "Dashboard", label: "Dashboard" }] : []),
+    { name: "Dashboard", label: "Dashboard" },
     { name: "tabs", label: "Overview" },
     { name: "Sales", label: "Sales Targets" },
-    ...(!isQuest
-      ? [
-          { name: "Missions", label: "Missions" },
-          { name: "Leaderboard", label: "Leaderboard" },
-          { name: "Recognition", label: "Recognition" },
-        ]
-      : []),
+    { name: "Missions", label: "Missions" },
+    { name: "Leaderboard", label: "Leaderboard" },
+    { name: "Recognition", label: "Recognition" },
     { name: "Inbox", label: "Inbox" },
     { name: "Profile", label: "Profile" },
   ];

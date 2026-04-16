@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -35,7 +36,10 @@ const Module = ({
         }
 
         if (text === "Watch masterclass") {
-          navigation.getParent()?.navigate("Masterclass");
+          Alert.alert(
+            "Coming Soon",
+            "The masterclass module will be available in Q3 2026."
+          );
           return;
         }
 
@@ -59,11 +63,12 @@ const Module = ({
       <Image
         source={fg}
         style={{
-          width: "53%",
+          width: "83%",
           height: "126%",
           position: "absolute",
-          right: -4,
-          top: -18,
+          right: "-15%",
+          bottom: 0
+          // top: ,
         }}
         resizeMode="contain"
       />
@@ -75,7 +80,7 @@ const Module = ({
           fontWeight: "800",
           paddingHorizontal: 24,
           paddingVertical: 22,
-          fontSize: 15,
+          fontSize: 13,
           maxWidth: "56%",
           textTransform: "uppercase",
         }}
@@ -155,6 +160,17 @@ const QuestHome = ({ navigation }) => {
             }}
           />
 
+          <TouchableOpacity
+            style={styles.dashboardButton}
+            onPress={() =>
+              navigation.navigate("Agent", {
+                screen: "Dashboard",
+              })
+            }
+          >
+            <Text style={styles.dashboardButtonText}>Open Dashboard</Text>
+          </TouchableOpacity>
+
           <View style={styles.moduleList}>
             <Module
               fg={moduleConfig.assets.homeCards.salesFg}
@@ -210,6 +226,21 @@ const styles = StyleSheet.create({
   },
   drawerButton: {
     alignSelf: "flex-start",
+  },
+  dashboardButton: {
+    alignSelf: "center",
+    marginTop: 26,
+    paddingHorizontal: 26,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.28)",
+  },
+  dashboardButtonText: {
+    color: theme.colors.secondary,
+    fontSize: 15,
+    fontWeight: "700",
   },
   moduleList: {
     marginTop: 34,

@@ -23,6 +23,7 @@ import GamificationCard from "../components/GamificationCard";
 import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
   DASHBOARD_SHOWCASE_BADGE_KEYS,
+  getGamificationCopy,
   getBadgesByKeys,
   getLeaderboardBadgeMeta,
   getMissionBadgeMeta,
@@ -111,10 +112,11 @@ const GamificationDashboard = ({ navigation }) => {
   const weeklyTrend = scorecard?.weekly?.trend || [];
   const dailyGoals = scorecard?.daily?.goals || {};
   const dailyRatios = scorecard?.daily?.ratios || {};
+  const moduleCopy = getGamificationCopy(selectedModule);
   const prospectingRatioPercent = dailyGoals?.p_daily
     ? Math.round(((dailyStats?.prospects ?? 0) / dailyGoals.p_daily) * 100)
     : 0;
-  const showcaseBadges = getBadgesByKeys(DASHBOARD_SHOWCASE_BADGE_KEYS);
+  const showcaseBadges = getBadgesByKeys(DASHBOARD_SHOWCASE_BADGE_KEYS, selectedModule);
 
   const encouragementText = useMemo(() => {
     if (scorecard?.daily?.score > 0) {
@@ -209,9 +211,11 @@ const GamificationDashboard = ({ navigation }) => {
                   </View>
                   <View style={styles.statChip}>
                     <Text style={styles.statValue}>
-                      {dailyStats?.salesCount ?? 0}/{dailyGoals?.s_daily ?? 0}
+                      {(dailyStats?.contractsCount ??
+                        dailyStats?.salesCount ??
+                        0)}/{dailyGoals?.c_daily ?? dailyGoals?.s_daily ?? 0}
                     </Text>
-                    <Text style={styles.statLabel}>Sales</Text>
+                    <Text style={styles.statLabel}>{moduleCopy.closedUnitTitle}</Text>
                   </View>
                 </View>
                 <View style={styles.trendRow}>
@@ -251,7 +255,11 @@ const GamificationDashboard = ({ navigation }) => {
                     P: {dailyRatios?.presentationRatioPercent ?? 0}%
                   </Text>
                   <Text style={styles.ratioText}>
-                    S: {dailyRatios?.salesRatioPercent ?? 0}%
+                    {moduleCopy.closedMetricShort}:{" "}
+                    {dailyRatios?.contractsRatioPercent ??
+                      dailyRatios?.salesRatioPercent ??
+                      0}
+                    %
                   </Text>
                 </View>
               </>
@@ -353,8 +361,16 @@ const GamificationDashboard = ({ navigation }) => {
           >
             {dailyMissions?.missions?.length ? (
               dailyMissions.missions.slice(0, 3).map((mission, index) => {
-                const missionBadge = getMissionBadgeMeta(mission, index);
-                const missionTitle = getMissionDisplayTitle(mission, index);
+                const missionBadge = getMissionBadgeMeta(
+                  mission,
+                  index,
+                  selectedModule
+                );
+                const missionTitle = getMissionDisplayTitle(
+                  mission,
+                  index,
+                  selectedModule
+                );
                 const missionProgressLabel = getMissionProgressLabel(mission);
                 const missionRewardText = getMissionRewardText(mission);
 
@@ -411,7 +427,10 @@ const GamificationDashboard = ({ navigation }) => {
             {topLeaderboardEntries.length ? (
               <>
                 {topLeaderboardEntries.map((entry) => {
-                  const leaderboardBadge = getLeaderboardBadgeMeta(entry.rank);
+                  const leaderboardBadge = getLeaderboardBadgeMeta(
+                    entry.rank,
+                    selectedModule
+                  );
 
                   return (
                     <View

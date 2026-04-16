@@ -73,8 +73,9 @@ const PROFESSIONAL_DESIGNATION_CARDS = [
 ];
 
 const Onboarding = ({ navigation }) => {
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const heroHeight = Math.max(420, height * 0.65);
+  const designationCardWidth = Math.max(300, width * 0.9);
 
   const openExternalUrl = async (url) => {
     try {
@@ -118,7 +119,9 @@ const Onboarding = ({ navigation }) => {
                 onPress={() => openExternalUrl("https://gitsagroup.com")}
               >
                 <Text style={styles.subline}>Discover Now</Text>
-                <Text style={styles.arrow}>{"->"}</Text>
+                <View style={styles.arrowWrap}>
+                  <Text style={styles.arrow}>{"→"}</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -152,14 +155,17 @@ const Onboarding = ({ navigation }) => {
               imageStyle={styles.promoCardImage}
             >
               <View style={styles.promoOverlay}>
-                <Text style={styles.promoTitle}>Activity Tracking App</Text>
-                <Text style={styles.promoSubtitle}>Get your free trial today</Text>
+                <Text style={styles.promoTitle}>Activity Tracking App </Text>
+                <View style={styles.promoCtaRow}>
+                  <Text style={styles.promoSubtitle}>Get your free trial today</Text>
+                  <Text style={styles.promoArrow}>{"→"}</Text>
+                </View>
               </View>
             </ImageBackground>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.sectionBlock}>
+        <View style={[styles.sectionBlock, styles.recommendedSectionBlock]}>
           <Text style={styles.sectionLabel}>RECOMMENDED FOR YOU</Text>
 
           <ScrollView
@@ -194,7 +200,7 @@ const Onboarding = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        <View style={styles.sectionBlock}>
+        <View style={[styles.sectionBlock, styles.designationSectionBlock]}>
           <Text style={styles.sectionLabel}>PROFESSIONAL DESIGNATIONS</Text>
 
           <ScrollView
@@ -216,7 +222,7 @@ const Onboarding = ({ navigation }) => {
               >
                 <ImageBackground
                   source={card.image}
-                  style={styles.designationCard}
+                  style={[styles.designationCard, { width: designationCardWidth }]}
                   imageStyle={styles.designationCardImage}
                 >
                   <View style={styles.designationOverlay}>
@@ -281,11 +287,16 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
   },
   arrow: {
-    marginLeft: 12,
     fontSize: 28,
     lineHeight: 30,
     color: "#ffffff",
     fontWeight: "500",
+    marginTop: 5,
+  },
+  arrowWrap: {
+    marginLeft: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
   welcomeCard: {
     marginTop: 0,
@@ -299,21 +310,27 @@ const styles = StyleSheet.create({
   },
   sectionBlock: {
     paddingHorizontal: 16,
-    marginTop: 6,
+    marginTop: 12,
+  },
+  designationSectionBlock: {
+    marginTop: 34,
+  },
+  recommendedSectionBlock: {
+    marginTop: 34,
   },
   sectionLabel: {
     fontSize: 12,
     fontWeight: "500",
     color: SECTION_LABEL,
     marginLeft: 8,
-    marginBottom: 12,
+    marginBottom: 24,
     letterSpacing: 0.2,
   },
   promoCardTouch: {
     borderRadius: 22,
   },
   promoCard: {
-    minHeight: 200,
+    minHeight: 250,
     justifyContent: "flex-end",
     overflow: "hidden",
     borderRadius: 22,
@@ -325,22 +342,36 @@ const styles = StyleSheet.create({
   promoOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    paddingHorizontal: 16,
-    paddingBottom: 28,
+    paddingHorizontal: 14,
+    paddingBottom: 18,
     backgroundColor: "rgba(0,0,0,0.08)",
   },
   promoTitle: {
-    fontSize: 27,
-    lineHeight: 32,
+    maxWidth: "82%",
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: "800",
     color: "#ffffff",
   },
   promoSubtitle: {
+    maxWidth: "82%",
     marginTop: 4,
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 10,
+    lineHeight: 13,
     color: PROMO_TEXT_MUTED,
     fontWeight: "500",
+  },
+  promoCtaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    // marginTop: 4,
+  },
+  promoArrow: {
+    marginLeft: 10,
+    fontSize: 26,
+    color: "#ffffff",
+    fontWeight: "500",
+    marginTop: 5,
   },
   recommendedRow: {
     paddingRight: 4,
@@ -394,7 +425,6 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   designationCard: {
-    width: 360,
     minHeight: 300,
     justifyContent: "flex-end",
     overflow: "hidden",
@@ -412,15 +442,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.12)",
   },
   designationTitle: {
-    fontSize: 31,
-    lineHeight: 40,
+    maxWidth: "82%",
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: "800",
     color: "#ffffff",
   },
   designationSubtitle: {
-    marginTop: 8,
-    fontSize: 18,
-    lineHeight: 24,
+    maxWidth: "82%",
+    marginTop: 4,
+    fontSize: 10,
+    lineHeight: 13,
     color: PROMO_TEXT_MUTED,
     fontWeight: "500",
   },

@@ -32,7 +32,6 @@ import {
 } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
 import { getTierMeta } from "../constants/gamificationVisuals";
-import { MODULE_KEYS } from "../constants/moduleConfig";
 
 const preferenceRows = [
   { key: "pushEnabled", label: "Push notifications" },
@@ -67,9 +66,8 @@ const Profile = ({ navigation }) => {
   const [deleting, setDeleting] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [localPreferences, setLocalPreferences] = useState(defaultPreferences);
-  const isQuest = selectedModule === MODULE_KEYS.QUEST;
-  const currentTierMeta = getTierMeta(tier?.currentTier);
-  const nextTierMeta = getTierMeta(tier?.nextTier);
+  const currentTierMeta = getTierMeta(tier?.currentTier, selectedModule);
+  const nextTierMeta = getTierMeta(tier?.nextTier, selectedModule);
   const formattedTierProgress = Number(tier?.progressPercent || 0).toFixed(1);
 
   useFocusEffect(
@@ -278,66 +276,62 @@ const Profile = ({ navigation }) => {
           </Text>
         </View>
 
-        {!isQuest && (
-          <GamificationCard
-            title="Tier & Momentum"
-            subtitle={
-              tier?.nextTier ? `Next tier: ${tier.nextTier}` : "Gamification summary"
-            }
-            rightContent={
-              <TouchableOpacity onPress={() => navigation.navigate("Recognition")}>
-                <Text style={styles.linkText}>Open</Text>
-              </TouchableOpacity>
-            }
-          >
-            {tier ? (
-              <>
-                <View style={styles.tierRow}>
-                  <View style={styles.tierIdentity}>
-                    {currentTierMeta?.image ? (
-                      <Image source={currentTierMeta.image} style={styles.tierImage} />
-                    ) : null}
-                    <View style={styles.tierTextBlock}>
-                      <Text style={styles.tierLabel}>Current</Text>
-                      <Text style={styles.tierValue}>{tier.currentTier}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.tierAlignRight}>
-                    {nextTierMeta?.image ? (
-                      <Image source={nextTierMeta.image} style={styles.nextTierImage} />
-                    ) : null}
-                    <Text style={styles.tierLabel}>Lifetime score</Text>
-                    <Text style={styles.tierValue}>{tier.lifetimeScore ?? 0}</Text>
+        <GamificationCard
+          title="Tier & Momentum"
+          subtitle={
+            tier?.nextTier ? `Next tier: ${tier.nextTier}` : "Gamification summary"
+          }
+          rightContent={
+            <TouchableOpacity onPress={() => navigation.navigate("Recognition")}>
+              <Text style={styles.linkText}>Open</Text>
+            </TouchableOpacity>
+          }
+        >
+          {tier ? (
+            <>
+              <View style={styles.tierRow}>
+                <View style={styles.tierIdentity}>
+                  {currentTierMeta?.image ? (
+                    <Image source={currentTierMeta.image} style={styles.tierImage} />
+                  ) : null}
+                  <View style={styles.tierTextBlock}>
+                    <Text style={styles.tierLabel}>Current</Text>
+                    <Text style={styles.tierValue}>{tier.currentTier}</Text>
                   </View>
                 </View>
-                <View style={styles.nextTierPill}>
-                  <Text style={styles.nextTierPillText}>
-                    {tier.nextTier
-                      ? `Next unlock: ${tier.nextTier}`
-                      : "Top tier unlocked"}
-                  </Text>
+                <View style={styles.tierAlignRight}>
+                  {nextTierMeta?.image ? (
+                    <Image source={nextTierMeta.image} style={styles.nextTierImage} />
+                  ) : null}
+                  <Text style={styles.tierLabel}>Lifetime score</Text>
+                  <Text style={styles.tierValue}>{tier.lifetimeScore ?? 0}</Text>
                 </View>
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${Math.min(100, tier.progressPercent || 0)}%` },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {formattedTierProgress}% progress toward{" "}
-                  {tier.nextTier || "the next tier"}
+              </View>
+              <View style={styles.nextTierPill}>
+                <Text style={styles.nextTierPillText}>
+                  {tier.nextTier ? `Next unlock: ${tier.nextTier}` : "Top tier unlocked"}
                 </Text>
-              </>
-            ) : (
-              <GamificationEmptyState
-                title="No tier data yet"
-                message="Keep logging activity to build momentum."
-              />
-            )}
-          </GamificationCard>
-        )}
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min(100, tier.progressPercent || 0)}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.progressText}>
+                {formattedTierProgress}% progress toward{" "}
+                {tier.nextTier || "the next tier"}
+              </Text>
+            </>
+          ) : (
+            <GamificationEmptyState
+              title="No tier data yet"
+              message="Keep logging activity to build momentum."
+            />
+          )}
+        </GamificationCard>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Information</Text>
@@ -386,78 +380,74 @@ const Profile = ({ navigation }) => {
           </View>
         </View>
 
-        {!isQuest && (
-          <>
-            <GamificationCard
-              title="Notification Preferences"
-              subtitle={
-                expoDevice?.permissionStatus === "granted"
-                  ? "Push registration active"
-                  : "Push permission not granted yet"
-              }
-            >
-              <View style={styles.preferenceMetaRow}>
-                <Text style={styles.preferenceMeta}>
-                  Device status: {expoDevice?.permissionStatus || "unknown"}
-                </Text>
-                {savingPreferences ? (
-                  <ActivityIndicator size="small" color={theme.colors.background} />
-                ) : null}
-              </View>
+        <>
+          <GamificationCard
+            title="Notification Preferences"
+            subtitle={
+              expoDevice?.permissionStatus === "granted"
+                ? "Push registration active"
+                : "Push permission not granted yet"
+            }
+          >
+            <View style={styles.preferenceMetaRow}>
+              <Text style={styles.preferenceMeta}>
+                Device status: {expoDevice?.permissionStatus || "unknown"}
+              </Text>
+              {savingPreferences ? (
+                <ActivityIndicator size="small" color={theme.colors.background} />
+              ) : null}
+            </View>
 
-              {preferenceRows.map((preference) => (
-                <View key={preference.key} style={styles.preferenceRow}>
-                  <Text style={styles.preferenceLabel}>{preference.label}</Text>
-                  <Switch
-                    value={Boolean(localPreferences?.[preference.key])}
-                    onValueChange={(value) =>
-                      savePreferenceChange(preference.key, value)
-                    }
-                    trackColor={{
-                      false: "rgba(100, 116, 139, 0.3)",
-                      true: "rgba(56, 113, 193, 0.4)",
-                    }}
-                    thumbColor={
-                      localPreferences?.[preference.key]
-                        ? theme.colors.background
-                        : "#f4f4f5"
-                    }
-                  />
-                </View>
-              ))}
-            </GamificationCard>
-
-            <GamificationCard
-              title="Recent Notifications"
-              subtitle="Latest reminders and updates"
-            >
-              {notifications?.length ? (
-                notifications.slice(0, 5).map((item, index) => (
-                  <View key={`${item.title}-${index}`} style={styles.notificationRow}>
-                    <Ionicons
-                      name={
-                        item.status === "sent"
-                          ? "notifications"
-                          : "notifications-outline"
-                      }
-                      size={18}
-                      color={theme.colors.background}
-                    />
-                    <View style={styles.notificationText}>
-                      <Text style={styles.notificationTitle}>{item.title}</Text>
-                      <Text style={styles.notificationBody}>{item.body}</Text>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <GamificationEmptyState
-                  title="No notifications yet"
-                  message="Weekly summaries, streak alerts, and achievements will appear here."
+            {preferenceRows.map((preference) => (
+              <View key={preference.key} style={styles.preferenceRow}>
+                <Text style={styles.preferenceLabel}>{preference.label}</Text>
+                <Switch
+                  value={Boolean(localPreferences?.[preference.key])}
+                  onValueChange={(value) => savePreferenceChange(preference.key, value)}
+                  trackColor={{
+                    false: "rgba(100, 116, 139, 0.3)",
+                    true: "rgba(56, 113, 193, 0.4)",
+                  }}
+                  thumbColor={
+                    localPreferences?.[preference.key]
+                      ? theme.colors.background
+                      : "#f4f4f5"
+                  }
                 />
-              )}
-            </GamificationCard>
-          </>
-        )}
+              </View>
+            ))}
+          </GamificationCard>
+
+          <GamificationCard
+            title="Recent Notifications"
+            subtitle="Latest reminders and updates"
+          >
+            {notifications?.length ? (
+              notifications.slice(0, 5).map((item, index) => (
+                <View key={`${item.title}-${index}`} style={styles.notificationRow}>
+                  <Ionicons
+                    name={
+                      item.status === "sent"
+                        ? "notifications"
+                        : "notifications-outline"
+                    }
+                    size={18}
+                    color={theme.colors.background}
+                  />
+                  <View style={styles.notificationText}>
+                    <Text style={styles.notificationTitle}>{item.title}</Text>
+                    <Text style={styles.notificationBody}>{item.body}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <GamificationEmptyState
+                title="No notifications yet"
+                message="Weekly summaries, streak alerts, and achievements will appear here."
+              />
+            )}
+          </GamificationCard>
+        </>
 
         <View style={styles.section}>
           <TouchableOpacity

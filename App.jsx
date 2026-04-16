@@ -271,6 +271,7 @@ function StartUp() {
           dailyMissions,
           leaderboard,
           tier,
+          selectedModule,
         });
 
         await Notifications.scheduleNotificationAsync({

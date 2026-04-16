@@ -456,7 +456,7 @@ const EffectivenessReport = () => {
           />
         </View>
 
-        <View
+        {/* <View
           style={{
             backgroundColor: theme.colors.secondary,
             borderRadius: 5,
@@ -501,7 +501,7 @@ const EffectivenessReport = () => {
               )}
             />
           </View>
-        </View>
+        </View> */}
       </ScrollView>
       {loading && <Loader />}
 

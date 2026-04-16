@@ -1,5 +1,6 @@
 import { privateApi } from "./axios";
 import { normalizeTierData } from "../constants/gamificationVisuals";
+import { store } from "../redux/store";
 
 export const gamificationApi = {
   getScorecard: async (token) => {
@@ -26,7 +27,8 @@ export const gamificationApi = {
   },
   getTier: async (token) => {
     const res = await privateApi(token).get("/gamification/me/tier");
-    return normalizeTierData(res.data?.tier || null);
+    const selectedModule = store.getState()?.Module?.selectedModule;
+    return normalizeTierData(res.data?.tier || null, selectedModule);
   },
   getRecognitionFeed: async (token) => {
     const res = await privateApi(token).get("/gamification/me/recognition-feed");

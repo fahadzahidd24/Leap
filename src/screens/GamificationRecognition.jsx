@@ -47,13 +47,14 @@ const formatCategoryLabel = (value) => {
 
 const GamificationRecognition = ({ navigation }) => {
   const token = useSelector((state) => state.User?.token);
+  const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const { badges, tier, recognition } = useSelector(
     (state) => state.Gamification.agent
   );
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  const currentTierMeta = getTierMeta(tier?.currentTier);
-  const nextTierMeta = getTierMeta(tier?.nextTier);
+  const currentTierMeta = getTierMeta(tier?.currentTier, selectedModule);
+  const nextTierMeta = getTierMeta(tier?.nextTier, selectedModule);
   const formattedTierProgress = Number(tier?.progressPercent || 0).toFixed(1);
 
   useFocusEffect(
@@ -160,7 +161,8 @@ const GamificationRecognition = ({ navigation }) => {
                 const badgeMeta = getBadgeMeta(
                   badge.badgeKey,
                   badge.badgeTitle,
-                  badge.badgeCategory
+                  badge.badgeCategory,
+                  selectedModule
                 );
 
                 return (
@@ -206,7 +208,8 @@ const GamificationRecognition = ({ navigation }) => {
               const badgeMeta = getBadgeMeta(
                 item.badgeKey,
                 item.title || item.badgeTitle,
-                item.badgeCategory
+                item.badgeCategory,
+                selectedModule
               );
 
               return (
@@ -250,7 +253,8 @@ const GamificationRecognition = ({ navigation }) => {
               const badgeMeta = getBadgeMeta(
                 item.badgeKey,
                 item.title || item.badgeTitle,
-                item.badgeCategory
+                item.badgeCategory,
+                selectedModule
               );
 
               return (
