@@ -20,6 +20,9 @@ import { publicApi } from "../api/axios.js";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/features/userSlice.js";
 import { clearSelectedModule } from "../redux/features/moduleSlice.js";
+import { resetEntries } from "../redux/features/entriesSlice";
+import { resetChat } from "../redux/features/chatSlice";
+import { resetGamification } from "../redux/features/gamificationSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { LEGAL_DOCUMENT_KEYS } from "../constants/legalDocuments.js";
@@ -70,6 +73,9 @@ const SignIn = ({ navigation }) => {
 
         dispatch(setUser({ user }));
         dispatch(clearSelectedModule());
+        dispatch(resetEntries());
+        dispatch(resetChat());
+        dispatch(resetGamification());
         await AsyncStorage.setItem("profession", user?.profession);
       })
       .catch((err) => {

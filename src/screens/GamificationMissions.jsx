@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Image,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -19,7 +20,6 @@ import GamificationEmptyState from "../components/GamificationEmptyState";
 import {
   getBadgesByKeys,
   getMissionBadgeMeta,
-  getMissionDisplayTitle,
   getMissionProgressPercent,
   getMissionProgressLabel,
   getMissionRewardText,
@@ -60,11 +60,17 @@ const MissionList = ({
       {missions?.length ? (
         missions.map((mission, index) => {
           const missionBadge = getMissionBadgeMeta(mission, index, selectedModule);
-          const missionTitle = getMissionDisplayTitle(mission, index, selectedModule);
+          const missionTitle = String(mission?.title || "").trim() || "Mission";
           const missionProgressLabel = getMissionProgressLabel(mission);
           const missionProgressPercent = getMissionProgressPercent(mission);
           const missionRewardText = getMissionRewardText(mission);
-          const missionTypeLabel = getMissionTypeLabel(mission, title?.includes("Weekly") ? "weekly" : "daily");
+          const missionTypeLabel = getMissionTypeLabel(
+            mission,
+            title?.includes("Weekly") ? "weekly" : "daily"
+          );
+          const missionSupportText = String(
+            mission?.description || mission?.body || ""
+          ).trim();
 
           return (
             <View key={mission.key || `${missionTitle}-${index}`} style={styles.missionCard}>
@@ -96,8 +102,8 @@ const MissionList = ({
                   </Text>
                 </View>
               </View>
-              {!!missionBadge?.description && (
-                <Text style={styles.missionBadgeHint}>{missionBadge.description}</Text>
+              {!!missionSupportText && (
+                <Text style={styles.missionBadgeHint}>{missionSupportText}</Text>
               )}
               <View style={styles.progressTrack}>
                 <View
@@ -130,26 +136,44 @@ const GamificationMissions = ({ navigation, route }) => {
   );
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    React.useCallback(() => {
+  const loadMissions = useCallback(
+    async ({ isRefresh = false } = {}) => {
       if (!token) {
         setLoading(false);
+        setRefreshing(false);
         return;
       }
 
-      setLoading(true);
-      Promise.all([
-        gamificationApi.getDailyMissions(token),
-        gamificationApi.getWeeklyMissions(token),
-      ])
-        .then(([daily, weekly]) => {
-          dispatch(setAgentDailyMissions(daily));
-          dispatch(setAgentWeeklyMissions(weekly));
-        })
-        .catch((error) => console.error("Error loading missions:", error))
-        .finally(() => setLoading(false));
-    }, [dispatch, token])
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        const [daily, weekly] = await Promise.all([
+          gamificationApi.getDailyMissions(token),
+          gamificationApi.getWeeklyMissions(token),
+        ]);
+
+        dispatch(setAgentDailyMissions(daily));
+        dispatch(setAgentWeeklyMissions(weekly));
+      } catch (error) {
+        console.error("Error loading missions:", error);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [dispatch, token]
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMissions();
+    }, [loadMissions])
   );
 
   return (
@@ -157,7 +181,17 @@ const GamificationMissions = ({ navigation, route }) => {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadMissions({ isRefresh: true })}
+            tintColor="#ffffff"
+          />
+        }
+      >
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.navigate(route?.params?.backTo || "Dashboard")}

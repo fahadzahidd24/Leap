@@ -29,8 +29,7 @@ export const MODULE_CONFIGS = {
     key: MODULE_KEYS.LEAP,
     label: "LEAP",
     subtitle: "Real-Time Activity. Real Results.",
-    lockedMessage:
-      "This module is not included in your current plan. Please contact your company admin.",
+    lockedMessage: "You're not enrolled in this module.",
     colors: {
       background: "#3871c1",
       secondary: "#FFFFFF",
@@ -75,8 +74,7 @@ export const MODULE_CONFIGS = {
     key: MODULE_KEYS.QUEST,
     label: "QUEST",
     subtitle: "Real-Time Pipeline. Real Growth.",
-    lockedMessage:
-      "This module is not included in your current plan. Please contact your company admin.",
+    lockedMessage: "You're not enrolled in this module.",
     colors: {
       background: "#3f8e9c",
       secondary: "#FFFFFF",
@@ -122,8 +120,29 @@ export const MODULE_CONFIGS = {
 export const getModuleConfig = (moduleKey) =>
   MODULE_CONFIGS[moduleKey] || MODULE_CONFIGS[MODULE_KEYS.LEAP];
 
+export const normalizeEnabledModules = (enabledModules = []) => {
+  if (!Array.isArray(enabledModules)) {
+    return [];
+  }
+
+  return enabledModules
+    .map((moduleKey) => String(moduleKey || "").trim().toUpperCase())
+    .filter((moduleKey) => Object.values(MODULE_KEYS).includes(moduleKey));
+};
+
+export const getEnabledModulesForUser = (user) =>
+  normalizeEnabledModules(user?.enabledModules);
+
 export const isModuleEnabled = (enabledModules = [], moduleKey) =>
-  Array.isArray(enabledModules) && enabledModules.includes(moduleKey);
+  normalizeEnabledModules(enabledModules).includes(
+    String(moduleKey || "").trim().toUpperCase()
+  );
+
+export const userHasModuleAccess = (user, moduleKey) =>
+  isModuleEnabled(getEnabledModulesForUser(user), moduleKey);
+
+export const getFirstEnabledModuleForUser = (user) =>
+  getEnabledModulesForUser(user)[0] || null;
 
 export const getInitialRouteForRole = (role) => {
   if (role === "manager") {

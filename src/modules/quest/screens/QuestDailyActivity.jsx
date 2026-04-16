@@ -62,7 +62,7 @@ const Activity = ({
     A: "https://gitsagroup.com/a-approach-video",
   };
 
-  const data = Array.from({ length: 50 }, (_, index) => index);
+  const data = Array.from({ length: 50 }, (_, index) => index + 1);
 
   const openModal = () => {
     setModalVisible(true);
@@ -243,7 +243,7 @@ const Activity = ({
                     width: "100%",
                   }}
                 >
-                  <Text style={{ fontWeight: "400", fontSize: 20 }}>RM </Text>
+                  <Text style={{ fontWeight: "400", fontSize: 20 }}>$ </Text>
                   <TextInput
                     value={premiumInput}
                     onChangeText={(text) => setPremiumInput(text)}
@@ -296,7 +296,7 @@ const Activity = ({
               }}
             >
               <Text style={{ fontWeight: "400", fontSize: 20 }}>
-                RM {totalPremium}
+                $ {totalPremium}
               </Text>
             </View>
           </View>

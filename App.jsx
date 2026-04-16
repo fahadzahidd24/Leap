@@ -41,6 +41,10 @@ import { gamificationApi } from "./src/api/gamification";
 import { registerGamificationDevice } from "./src/utils/registerGamificationDevice";
 import { buildGamificationNotification } from "./src/utils/gamificationNotifications";
 import { applyModuleTheme } from "./src/constants/theme";
+import {
+  getEnabledModulesForUser,
+  userHasModuleAccess,
+} from "./src/constants/moduleConfig";
 import useSocket from "./src/hooks/useSocket";
 LogBox.ignoreAllLogs();
 
@@ -61,11 +65,14 @@ function StartUp() {
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
   const { sendEvent } = useSocket();
   const [loading, setLoading] = useState(true);
-  const appOpenTrackedRef = useRef(null);
+  const appOpenTrackedRef = useRef("");
+  const appOpenSessionRef = useRef(0);
+  const previousTokenRef = useRef(null);
   const locationSubscriptionRef = useRef(null);
   const appStateRef = useRef(AppState.currentState);
   const hasShownMotivationForActiveStateRef = useRef(false);
   const isShowingMotivationNotificationRef = useRef(false);
+  const deniedModuleAlertRef = useRef("");
 
   const loadUser = useCallback(async () => {
     try {
@@ -76,10 +83,8 @@ function StartUp() {
         dispatch(setUser({ user: parsedUser }));
 
         const storedModule = await AsyncStorage.getItem(ACTIVE_MODULE_STORAGE_KEY);
-        if (storedModule) {
-          dispatch(setSelectedModule(storedModule));
-        }
-        
+        let effectiveUser = parsedUser;
+
         // Fetch fresh user data from server
         if (parsedUser?.token) {
           try {
@@ -87,18 +92,18 @@ function StartUp() {
             if (res.data?.user) {
               // Merge server data with stored token
               const updatedUser = { ...res.data.user, token: parsedUser.token };
+              effectiveUser = updatedUser;
               dispatch(setUser({ user: updatedUser }));
-
-              if (
-                storedModule &&
-                !updatedUser?.enabledModules?.includes?.(storedModule)
-              ) {
-                dispatch(clearSelectedModule());
-              }
             }
           } catch (profileError) {
             console.error("Error fetching user profile:", profileError);
           }
+        }
+
+        if (storedModule && userHasModuleAccess(effectiveUser, storedModule)) {
+          dispatch(setSelectedModule(storedModule));
+        } else {
+          dispatch(clearSelectedModule());
         }
       }
     } catch (error) {
@@ -131,6 +136,34 @@ function StartUp() {
       { cancelable: false }
     );
   }, [dispatch, user?.role, user?.token]);
+
+  useEffect(() => {
+    if (!user?.token || !MOBILE_ALLOWED_ROLES.includes(user?.role)) {
+      deniedModuleAlertRef.current = "";
+      return;
+    }
+
+    if (!selectedModule || userHasModuleAccess(user, selectedModule)) {
+      deniedModuleAlertRef.current = "";
+      return;
+    }
+
+    if (deniedModuleAlertRef.current === selectedModule) {
+      return;
+    }
+
+    deniedModuleAlertRef.current = selectedModule;
+    dispatch(clearSelectedModule());
+    dispatch(resetEntries());
+    dispatch(resetChat());
+    dispatch(resetGamification());
+    navigation.navigate("GITSA Home");
+
+    Alert.alert(
+      "No Access",
+      `You do not have access to the ${selectedModule} module.`
+    );
+  }, [dispatch, navigation, selectedModule, user]);
 
   const loadEntries = useCallback(async () => {
     if (user?.token && selectedModule) {
@@ -193,15 +226,37 @@ function StartUp() {
     applyModuleTheme(selectedModule);
   }, [selectedModule]);
 
-  // Track app open when user is logged in (on app start or after login)
   useEffect(() => {
-    if (user?.token && selectedModule && appOpenTrackedRef.current !== selectedModule) {
-      appOpenTrackedRef.current = selectedModule;
-      privateApi(user.token)
-        .post("/tracking/app-open")
-        .catch((err) => console.error("App-open tracking error:", err));
+    const currentToken = user?.token || null;
+
+    if (currentToken && previousTokenRef.current !== currentToken) {
+      appOpenSessionRef.current += 1;
+      appOpenTrackedRef.current = "";
     }
-  }, [selectedModule, user?.token]);
+
+    if (!currentToken && previousTokenRef.current) {
+      appOpenTrackedRef.current = "";
+    }
+
+    previousTokenRef.current = currentToken;
+  }, [user?.token]);
+
+  // Track app open once per login/app-open session for the active module.
+  useEffect(() => {
+    if (!user?.token || !selectedModule || loading) {
+      return;
+    }
+
+    const trackingKey = `${user.token}:${selectedModule}:${appOpenSessionRef.current}`;
+    if (appOpenTrackedRef.current === trackingKey) {
+      return;
+    }
+
+    appOpenTrackedRef.current = trackingKey;
+    privateApi(user.token)
+      .post("/tracking/app-open")
+      .catch((err) => console.error("App-open tracking error:", err));
+  }, [loading, selectedModule, user?.token]);
 
   useEffect(() => {
     if (!user?.token || !selectedModule || loading) {
@@ -298,6 +353,8 @@ function StartUp() {
       appStateRef.current = nextAppState;
 
       if (wasBackgrounded && nextAppState === "active") {
+        appOpenSessionRef.current += 1;
+        appOpenTrackedRef.current = "";
         hasShownMotivationForActiveStateRef.current = false;
         maybeShowMotivationNotification();
       }

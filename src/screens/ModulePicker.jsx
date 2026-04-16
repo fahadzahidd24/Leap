@@ -15,11 +15,12 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   GITSA_BRAND,
+  getEnabledModulesForUser,
   getInitialRouteForRole,
   getModuleLandingRouteForRole,
   getModuleConfig,
-  isModuleEnabled,
   MODULE_KEYS,
+  userHasModuleAccess,
 } from "../constants/moduleConfig";
 import { clearSelectedModule, setSelectedModule } from "../redux/features/moduleSlice";
 import { logoutUser } from "../redux/features/userSlice";
@@ -73,7 +74,7 @@ const ModuleCard = ({ moduleKey, enabled, onPress }) => {
       <View style={styles.cardFooter}>
         <View style={[styles.colorDot, { backgroundColor: module.colors.background }]} />
         <Text style={styles.cardFooterText}>
-          {enabled ? "Tap to enter module" : "Visible in app, access locked"}
+          {enabled ? "Tap to enter module" : "You're not enrolled in this module"}
         </Text>
       </View>
     </TouchableOpacity>
@@ -84,7 +85,7 @@ const ModulePicker = ({ navigation }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
-  const enabledModules = user?.enabledModules || [];
+  const enabledModules = getEnabledModulesForUser(user);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -95,10 +96,12 @@ const ModulePicker = ({ navigation }) => {
   };
 
   const openModule = (moduleKey) => {
-    if (!isModuleEnabled(enabledModules, moduleKey)) {
+    if (!userHasModuleAccess(user, moduleKey)) {
+      const module = getModuleConfig(moduleKey);
       Alert.alert(
-        "Module locked",
-        "This module is not included in your current plan. Please contact your company admin."
+        "No Access",
+        module.lockedMessage ||
+          "This module is not assigned to your account. Please contact your admin."
       );
       return;
     }
@@ -143,7 +146,7 @@ const ModulePicker = ({ navigation }) => {
 
           <Text style={styles.title}>Welcome to GITSA</Text>
           <Text style={styles.subtitle}>
-            Choose your module. Your access is controlled by your company subscription.
+          Choose your module. Your access is based on the modules assigned to your account.
           </Text>
 
           <View style={styles.profileCard}>
@@ -184,12 +187,21 @@ const ModulePicker = ({ navigation }) => {
             ) : null}
           </View>
 
+          {!enabledModules.length ? (
+            <View style={styles.noticeCard}>
+              <Ionicons name="alert-circle-outline" size={18} color={GITSA_ACCENT} />
+              <Text style={styles.noticeText}>
+                No modules are currently assigned to your account. Please contact your admin.
+              </Text>
+            </View>
+          ) : null}
+
           <View style={styles.moduleList}>
             {moduleOrder.map((moduleKey) => (
               <ModuleCard
                 key={moduleKey}
                 moduleKey={moduleKey}
-                enabled={isModuleEnabled(enabledModules, moduleKey)}
+                enabled={userHasModuleAccess(user, moduleKey)}
                 onPress={() => openModule(moduleKey)}
               />
             ))}
@@ -289,6 +301,25 @@ const styles = StyleSheet.create({
   },
   moduleList: {
     gap: 14,
+  },
+  noticeCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.66)",
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "rgba(230, 99, 76, 0.16)",
+    marginBottom: 18,
+  },
+  noticeText: {
+    flex: 1,
+    marginLeft: 10,
+    color: TEXT_PRIMARY,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "500",
   },
   card: {
     backgroundColor: "rgba(255,255,255,0.72)",

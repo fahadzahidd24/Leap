@@ -278,7 +278,7 @@ const MyAgents = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD Sales:</Text>
                   <Text style={styles.value}>
-                    RM {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
+                    $ {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
                   </Text>
                 </View>
                 <View style={styles.row}>

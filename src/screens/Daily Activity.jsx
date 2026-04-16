@@ -282,7 +282,7 @@ const Activity = ({
                     width: "100%",
                   }}
                 >
-                  <Text style={{ fontWeight: "400", fontSize: 20 }}>RM </Text>
+                  <Text style={{ fontWeight: "400", fontSize: 20 }}>$ </Text>
                   <TextInput
                     value={premiumInput}
                     onChangeText={(text) => setPremiumInput(text)}
@@ -345,7 +345,7 @@ const Activity = ({
               }}
             >
               <Text style={{ fontWeight: "400", fontSize: 20 }}>
-                RM {totalPremium}
+                $ {totalPremium}
               </Text>
             </View>
           </View>

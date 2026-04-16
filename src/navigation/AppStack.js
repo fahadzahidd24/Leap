@@ -50,7 +50,11 @@ import GamificationDashboard from "../screens/GamificationDashboard";
 import ManagerDashboard from "../screens/ManagerDashboard";
 import ManagerLiveMap from "../screens/ManagerLiveMap";
 import ModulePicker from "../screens/ModulePicker";
-import { getModuleConfig, MODULE_KEYS } from "../constants/moduleConfig";
+import {
+  getModuleConfig,
+  MODULE_KEYS,
+  userHasModuleAccess,
+} from "../constants/moduleConfig";
 import { clearSelectedModule } from "../redux/features/moduleSlice";
 import QuestSales from "../modules/quest/screens/QuestSales";
 import QuestDailyActivity from "../modules/quest/screens/QuestDailyActivity";
@@ -479,6 +483,8 @@ const DrawerNav = () => {
   const moduleConfig = getModuleConfig(selectedModule);
   const HomeScreen = selectedModule === MODULE_KEYS.QUEST ? QuestHome : Home;
   const SalesScreen = selectedModule === MODULE_KEYS.QUEST ? QuestSales : Sales;
+  const salesTargetsLabel =
+    selectedModule === MODULE_KEYS.QUEST ? "Contracts Targets" : "Sales Targets";
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("profession");
@@ -494,7 +500,7 @@ const DrawerNav = () => {
     { name: "Home", label: "Home" },
     { name: "Dashboard", label: "Dashboard" },
     { name: "tabs", label: "Overview" },
-    { name: "Sales", label: "Sales Targets" },
+    { name: "Sales", label: salesTargetsLabel },
     { name: "Missions", label: "Missions" },
     { name: "Leaderboard", label: "Leaderboard" },
     { name: "Recognition", label: "Recognition" },
@@ -572,7 +578,7 @@ const DrawerNav = () => {
         name="Sales"
         component={SalesScreen}
         options={{
-          drawerLabel: "Sales Targets",
+          drawerLabel: salesTargetsLabel,
           title: "",
         }}
       />
@@ -934,8 +940,11 @@ const CoachStackNavigator = () => {
 };
 
 export default AppStack = () => {
+  const user = useSelector((state) => state.User);
   const role = useSelector((state) => state.User?.role);
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const hasActiveModuleAccess =
+    !selectedModule || userHasModuleAccess(user, selectedModule);
   const moduleConfig = getModuleConfig(selectedModule);
   const navigation = useNavigation();
   const AnnualProgressScreen =
@@ -953,7 +962,7 @@ export default AppStack = () => {
         name="GITSA Home"
         component={ModulePicker}
       />
-      {role === "agent" && (
+      {role === "agent" && selectedModule && hasActiveModuleAccess && (
         <>
           <Stack.Screen
             options={{ headerShown: false }}
@@ -977,7 +986,7 @@ export default AppStack = () => {
           />
         </>
       )}
-      {role === "manager" && (
+      {role === "manager" && selectedModule && hasActiveModuleAccess && (
         <>
           <Stack.Screen
             options={{ headerShown: false }}
@@ -1026,31 +1035,35 @@ export default AppStack = () => {
         name="Masterclass"
         component={Masterclass}
       />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="VideoPlayer"
-        component={VideoPlayer}
-      />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="Chat"
-        component={Chat}
-      />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="Missions"
-        component={GamificationMissions}
-      />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="Leaderboard"
-        component={GamificationLeaderboard}
-      />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="Recognition"
-        component={GamificationRecognition}
-      />
+      {selectedModule && hasActiveModuleAccess && (
+        <>
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="VideoPlayer"
+            component={VideoPlayer}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Chat"
+            component={Chat}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Missions"
+            component={GamificationMissions}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Leaderboard"
+            component={GamificationLeaderboard}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="Recognition"
+            component={GamificationRecognition}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 };

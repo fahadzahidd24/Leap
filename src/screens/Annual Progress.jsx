@@ -156,7 +156,7 @@ const AnnualProgress = () => {
               textAlign: "center",
             }}
           >
-            RM{" "}
+            {"$ "}
             {(
               entries?.SalesTargets?.salesTargets -
                 entries?.yearly_achieved?.totalPremiumYearly || 0
@@ -181,7 +181,7 @@ const AnnualProgress = () => {
                   textAlign: "center",
                 }}
               >
-                RM{" "}
+                {"$ "}
                 {entries?.yearly_achieved?.totalPremiumYearly?.toLocaleString() ||
                   0}
               </Text>

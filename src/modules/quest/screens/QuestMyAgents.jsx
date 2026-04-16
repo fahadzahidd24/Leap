@@ -243,7 +243,7 @@ const QuestMyAgents = ({ navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>YTD S:</Text>
+                  <Text style={styles.label}>YTD C:</Text>
                   <Text style={styles.value}>
                     {formatPercentage(
                       (agentPAS?.s_yearly /
@@ -255,7 +255,7 @@ const QuestMyAgents = ({ navigation }) => {
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Sales Effectiveness Ratios</Text>
+                <Text style={styles.sectionTitle}>Contracts Effectiveness Ratios</Text>
                 <View style={styles.row}>
                   <Text style={styles.label}>Appointments Ratio:</Text>
                   <Text style={styles.value}>
@@ -269,7 +269,7 @@ const QuestMyAgents = ({ navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <Text style={styles.label}>Sales Ratio:</Text>
+                  <Text style={styles.label}>Contracts Ratio:</Text>
                   <Text style={styles.value}>
                     {formatPercentage(calculateSalesRatioAchieved(agentPAS))}
                   </Text>
@@ -281,7 +281,7 @@ const QuestMyAgents = ({ navigation }) => {
                 <View style={styles.row}>
                   <Text style={styles.label}>YTD Sales:</Text>
                   <Text style={styles.value}>
-                    RM {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
+                    $ {agentPAS?.totalPremiumYearly?.toLocaleString() || 0}
                   </Text>
                 </View>
                 <View style={styles.row}>

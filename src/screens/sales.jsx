@@ -238,14 +238,14 @@ const Sales = ({ navigation }) => {
             }}
           >
             <LeapTextInput
-              label="Annual Sales Targets (RM) "
+              label="Annual Sales Targets ($) "
               value={Number(formData.salesTargets).toLocaleString()}
               keyboardType="numeric"
               onChangeText={(text) => handleInputChange("salesTargets", text)}
               isError={formErrors.salesTargetsError}
             />
             <LeapTextInput
-              label={"Average Case Size (RM) "}
+              label={"Average Case Size ($) "}
               value={Number(formData.averageCaseSize).toLocaleString()}
               keyboardType="numeric"
               isError={formErrors.averageCaseSizeError}
