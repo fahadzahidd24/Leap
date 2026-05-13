@@ -2,7 +2,6 @@ import React from "react";
 import {
   Image,
   ImageBackground,
-  Linking,
   Platform,
   ScrollView,
   StatusBar,
@@ -12,6 +11,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 
 const BRAND_RED = "#a5003c";
 const TEXT_DARK = "#111827";
@@ -79,7 +79,14 @@ const Onboarding = ({ navigation }) => {
 
   const openExternalUrl = async (url) => {
     try {
-      await Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url, {
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+        controlsColor: BRAND_RED,
+        toolbarColor: "#ffffff",
+        dismissButtonStyle: "done",
+        readerMode: false,
+        enableBarCollapsing: true,
+      });
     } catch (error) {
       console.error("Unable to open onboarding link:", error);
     }

@@ -1,4 +1,4 @@
-package com.softwarepro.strides
+package com.softwarepro.gitsa
 
 import android.app.Application
 import android.content.res.Configuration

@@ -1,4 +1,4 @@
-package com.softwarepro.strides
+package com.softwarepro.gitsa
 
 import android.os.Build
 import android.os.Bundle
