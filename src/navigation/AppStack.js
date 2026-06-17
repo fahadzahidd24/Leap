@@ -2,7 +2,7 @@ import {
   CardStyleInterpolators,
   createStackNavigator,
 } from "@react-navigation/stack";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Home from "../screens/home";
 import {
   createDrawerNavigator,
@@ -66,6 +66,7 @@ import QuestProfession from "../modules/quest/screens/QuestProfession";
 import QuestMyAgents from "../modules/quest/screens/QuestMyAgents";
 import QuestChatCoach from "../modules/quest/screens/AskMyCoach/QuestChatCoach";
 import QuestChatGpt from "../modules/quest/screens/AskMyCoach/QuestChatGpt";
+import NeedHelpModal from "../components/NeedHelpModal";
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -103,6 +104,7 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
   const currentRouteName = state?.routes[state?.index]?.name;
   const moduleConfig = getModuleConfig(selectedModule);
   const drawerColors = moduleConfig.drawerColors;
+  const [helpVisible, setHelpVisible] = useState(false);
   const drawerStyles = useMemo(
     () => createDrawerStyles(drawerColors),
     [drawerColors]
@@ -206,9 +208,23 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
         </View>
       </DrawerContentScrollView>
 
-      {/* Logout */}
+      {/* Footer */}
       <View style={drawerStyles.footer}>
         <View style={drawerStyles.divider} />
+        <TouchableOpacity
+          style={drawerStyles.helpBtn}
+          onPress={() => setHelpVisible(true)}
+          activeOpacity={0.7}
+        >
+          <View style={drawerStyles.helpIcon}>
+            <Ionicons
+              name="headset-outline"
+              size={20}
+              color={theme.colors.white}
+            />
+          </View>
+          <Text style={drawerStyles.helpText}>Need Help</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={drawerStyles.logoutBtn}
           onPress={handleLogout}
@@ -220,6 +236,13 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
           <Text style={drawerStyles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </View>
+
+      <NeedHelpModal
+        visible={helpVisible}
+        onClose={() => setHelpVisible(false)}
+        mode="authed"
+        moduleKey={selectedModule}
+      />
     </LinearGradient>
   );
 }
@@ -412,6 +435,31 @@ const createDrawerStyles = (drawerColors) =>
   logoutText: {
     fontSize: 15,
     color: drawerColors.danger,
+    fontWeight: "600",
+  },
+  helpBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+  },
+  helpIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  helpText: {
+    fontSize: 15,
+    color: theme.colors.white,
     fontWeight: "600",
   },
 });
