@@ -55,7 +55,7 @@ const GamificationRecognition = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const currentTierMeta = getTierMeta(tier?.currentTier, selectedModule);
   const nextTierMeta = getTierMeta(tier?.nextTier, selectedModule);
-  const formattedTierProgress = Number(tier?.progressPercent || 0).toFixed(1);
+  const formattedTierProgress = Math.round(Number(tier?.progressPercent || 0));
 
   useFocusEffect(
     React.useCallback(() => {

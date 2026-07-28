@@ -2,6 +2,20 @@ import { getGamificationCopy } from "../constants/gamificationVisuals";
 
 const pickRandom = (items) => items[Math.floor(Math.random() * items.length)];
 
+// Turn a score label (from SCORE_LABELS on the backend) into a phrase that reads
+// naturally after "…and ". The raw labels are status nouns, so "you're <label>"
+// only works for "On Track" — everything else needs its own wording.
+const SCORE_LABEL_PHRASES = {
+  "Elite Execution": "you're executing at an elite level",
+  "Strong Momentum": "you've got strong momentum",
+  "On Track": "you're on track",
+  "Needs Activity": "you need more activity",
+  "Pipeline Risk": "your pipeline is at risk",
+};
+
+const getScoreLabelPhrase = (label) =>
+  SCORE_LABEL_PHRASES[label] || (label ? `you're ${label.toLowerCase()}` : "");
+
 export const buildGamificationNotification = ({
   user,
   scorecard,
@@ -31,7 +45,7 @@ export const buildGamificationNotification = ({
     {
       title: "Progress check",
       body: `Your execution score is ${daily?.score ?? 0}${
-        daily?.label ? ` and you're ${daily.label.toLowerCase()}` : ""
+        daily?.label ? ` and ${getScoreLabelPhrase(daily.label)}` : ""
       }. Keep the pressure on.`,
     },
     {
@@ -85,7 +99,7 @@ export const buildGamificationNotification = ({
     candidates.push(
       {
         title: "Tier progress",
-        body: `You're ${tier.progressPercent ?? 0}% of the way to ${tier.nextTier}. Today's activity can move you closer.`,
+        body: `You're ${Math.round(tier.progressPercent ?? 0)}% of the way to ${tier.nextTier}. Today's activity can move you closer.`,
       },
       {
         title: `${tier.currentTier || "Current"} level active`,

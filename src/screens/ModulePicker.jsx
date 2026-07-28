@@ -35,6 +35,12 @@ const TEXT_MUTED = "#64748b";
 
 const ModuleCard = ({ moduleKey, enabled, onPress }) => {
   const module = getModuleConfig(moduleKey);
+  // QUEST's stock logo is landscape; use the square version so both module
+  // logos render as identical square tiles (matches the onboarding screen).
+  const cardLogoSource =
+    moduleKey === MODULE_KEYS.QUEST
+      ? require("../../assets/quest-logo-square.png")
+      : module.assets.logo;
 
   return (
     <TouchableOpacity
@@ -52,7 +58,7 @@ const ModuleCard = ({ moduleKey, enabled, onPress }) => {
     >
       <View style={styles.cardHeader}>
         <View style={styles.cardLogoWrap}>
-          <Image source={module.assets.logo} style={styles.cardLogo} resizeMode="contain" />
+          <Image source={cardLogoSource} style={styles.cardLogo} resizeMode="cover" />
         </View>
         {enabled ? (
           <View style={[styles.stateBadge, styles.stateBadgeActive]}>
@@ -343,13 +349,13 @@ const styles = StyleSheet.create({
   },
   cardLogoWrap: {
     backgroundColor: "rgba(255,255,255,0.62)",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    padding: 8,
     borderRadius: 16,
   },
   cardLogo: {
-    width: 84,
-    height: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
   },
   stateBadge: {
     flexDirection: "row",

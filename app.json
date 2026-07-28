@@ -2,7 +2,7 @@
   "expo": {
     "name": "GITSA One",
     "slug": "gitsa",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "scheme": "gitsa",
     "icon": "./assets/gitsaLogo.png",
@@ -28,7 +28,7 @@
         "backgroundColor": "#cfe9f6"
       },
       "package": "com.softwarepro.gitsa",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "com.google.android.gms.permission.AD_ID",
