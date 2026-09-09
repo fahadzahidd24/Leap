@@ -43,6 +43,7 @@ import { buildGamificationNotification } from "./src/utils/gamificationNotificat
 import { applyModuleTheme } from "./src/constants/theme";
 import {
   getEnabledModulesForUser,
+  getRoleForModule,
   userHasModuleAccess,
 } from "./src/constants/moduleConfig";
 import useSocket from "./src/hooks/useSocket";
@@ -372,7 +373,7 @@ function StartUp() {
       if (
         !user?.token ||
         !selectedModule ||
-        user?.role !== "agent" ||
+        getRoleForModule(user, selectedModule) !== "agent" ||
         !user?._id ||
         !user?.companyName
       ) {

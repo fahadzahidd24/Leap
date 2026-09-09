@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import React, { useMemo, useState } from "react";
 import { theme } from "../constants/theme";
+import { getRoleForModule } from "../constants/moduleConfig";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Ionicons,
@@ -68,7 +69,7 @@ const GamificationDashboard = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      if (!user?.token || user?.role !== "agent") {
+      if (!user?.token || getRoleForModule(user, selectedModule) !== "agent") {
         setLoading(false);
         return;
       }
@@ -102,7 +103,7 @@ const GamificationDashboard = ({ navigation }) => {
           );
         })
         .finally(() => setLoading(false));
-    }, [dispatch, user?.role, user?.token])
+    }, [dispatch, user?.role, user?.moduleRoles, selectedModule, user?.token])
   );
 
   const topLeaderboardEntries = leaderboard?.entries?.slice(0, 3) || [];

@@ -18,6 +18,7 @@ import {
   getEnabledModulesForUser,
   getInitialRouteForRole,
   getModuleLandingRouteForRole,
+  getRoleForModule,
   getModuleConfig,
   MODULE_KEYS,
   userHasModuleAccess,
@@ -33,7 +34,7 @@ const GITSA_ACCENT = "#e6634c";
 const TEXT_PRIMARY = "#0f172a";
 const TEXT_MUTED = "#64748b";
 
-const ModuleCard = ({ moduleKey, enabled, onPress }) => {
+const ModuleCard = ({ moduleKey, enabled, moduleRole, onPress }) => {
   const module = getModuleConfig(moduleKey);
   // QUEST's stock logo is landscape; use the square version so both module
   // logos render as identical square tiles (matches the onboarding screen).
@@ -80,7 +81,11 @@ const ModuleCard = ({ moduleKey, enabled, onPress }) => {
       <View style={styles.cardFooter}>
         <View style={[styles.colorDot, { backgroundColor: module.colors.background }]} />
         <Text style={styles.cardFooterText}>
-          {enabled ? "Tap to enter module" : "You're not enrolled in this module"}
+          {enabled
+            ? moduleRole
+              ? `Enter as ${moduleRole}`
+              : "Tap to enter module"
+            : "You're not enrolled in this module"}
         </Text>
       </View>
     </TouchableOpacity>
@@ -119,8 +124,10 @@ const ModulePicker = ({ navigation }) => {
     }
 
     dispatch(setSelectedModule(moduleKey));
-    const stackDestination = getInitialRouteForRole(user?.role);
-    const landingRoute = getModuleLandingRouteForRole(user?.role);
+    // Route by the role held in THIS module, not the company-wide default.
+    const moduleRole = getRoleForModule(user, moduleKey);
+    const stackDestination = getInitialRouteForRole(moduleRole);
+    const landingRoute = getModuleLandingRouteForRole(moduleRole);
     const parentNavigation = navigation.getParent?.();
 
     if (parentNavigation) {
@@ -170,7 +177,6 @@ const ModulePicker = ({ navigation }) => {
               <Ionicons name="person-outline" size={20} color={GITSA_ACCENT} />
               <Text style={styles.profileText}>
                 {user?.fullName || "User"}
-                {user?.role ? ` • ${user.role}` : ""}
               </Text>
             </View>
             {user?.subscriptionStatus ? (
@@ -208,6 +214,7 @@ const ModulePicker = ({ navigation }) => {
                 key={moduleKey}
                 moduleKey={moduleKey}
                 enabled={userHasModuleAccess(user, moduleKey)}
+                moduleRole={getRoleForModule(user, moduleKey)}
                 onPress={() => openModule(moduleKey)}
               />
             ))}
