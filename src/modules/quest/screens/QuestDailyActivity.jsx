@@ -35,6 +35,19 @@ import * as Linking from "expo-linking";
 import { useFocusEffect } from "@react-navigation/native";
 import { getModuleConfig, MODULE_KEYS } from "../../../constants/moduleConfig";
 
+// These cards show a week-to-date total (see "Weekly Activity Achievement"),
+// but the API stores one value per day. So the number the agent taps is a
+// weekly target: today's value has to be whatever makes the week add up to it.
+// Subtract what the other days in the week already hold, and never go negative.
+const weeklyTargetToDailyValue = (weeklyTarget, weeklyAchieved, dailyAchieved) => {
+  const target = Number(weeklyTarget) || 0;
+  const weekToDate = Number(weeklyAchieved) || 0;
+  const today = Number(dailyAchieved) || 0;
+  const otherDays = Math.max(weekToDate - today, 0);
+
+  return Math.max(target - otherDays, 0);
+};
+
 const Activity = ({
   text,
   status,
@@ -600,7 +613,11 @@ const DailyActivity = ({ navigation }) => {
               color={"#ff5757"}
               onPress={(value) =>
                 updateAchievements({
-                  p_daily: value,
+                  p_daily: weeklyTargetToDailyValue(
+                    value,
+                    entries?.weekly_achieved?.p_weekly,
+                    entries?.daily_achieved?.p_daily
+                  ),
                   date: new Date().toLocaleDateString("en-GB"),
                 })
               }
@@ -614,7 +631,11 @@ const DailyActivity = ({ navigation }) => {
               status={"A"}
               onPress={(value) =>
                 updateAchievements({
-                  a_daily: value,
+                  a_daily: weeklyTargetToDailyValue(
+                    value,
+                    entries?.weekly_achieved?.a_weekly,
+                    entries?.daily_achieved?.a_daily
+                  ),
                   date: new Date().toLocaleDateString("en-GB"),
                 })
               }
@@ -628,7 +649,11 @@ const DailyActivity = ({ navigation }) => {
               status={"P"}
               onPress={(value) =>
                 updateAchievements({
-                  pr_daily: value,
+                  pr_daily: weeklyTargetToDailyValue(
+                    value,
+                    entries?.weekly_achieved?.pr_weekly,
+                    entries?.daily_achieved?.pr_daily
+                  ),
                   date: new Date().toLocaleDateString("en-GB"),
                 })
               }
@@ -644,7 +669,11 @@ const DailyActivity = ({ navigation }) => {
               status={"C"}
               onPress={(value) =>
                 updateAchievements({
-                  c_daily: value,
+                  c_daily: weeklyTargetToDailyValue(
+                    value,
+                    entries?.weekly_achieved?.c_weekly,
+                    entries?.daily_achieved?.c_daily
+                  ),
                   date: new Date().toLocaleDateString("en-GB"),
                 })
               }

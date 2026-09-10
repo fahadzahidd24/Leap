@@ -32,6 +32,7 @@ import {
 } from "../redux/features/gamificationSlice";
 import { gamificationApi } from "../api/gamification";
 import { getTierMeta } from "../constants/gamificationVisuals";
+import { getRoleForModule } from "../constants/moduleConfig";
 
 const preferenceRows = [
   { key: "pushEnabled", label: "Push notifications" },
@@ -57,6 +58,7 @@ const defaultPreferences = {
 const Profile = ({ navigation }) => {
   const user = useSelector((state) => state.User);
   const selectedModule = useSelector((state) => state.Module?.selectedModule);
+  const moduleRole = getRoleForModule(user, selectedModule);
   const { tier, notifications, preferences } = useSelector(
     (state) => state.Gamification.agent
   );
@@ -270,8 +272,8 @@ const Profile = ({ navigation }) => {
 
           <Text style={styles.userName}>{user?.fullName || "User"}</Text>
           <Text style={styles.userRole}>
-            {user?.role
-              ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+            {moduleRole
+              ? moduleRole.charAt(0).toUpperCase() + moduleRole.slice(1)
               : "Member"}
           </Text>
         </View>

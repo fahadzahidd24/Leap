@@ -144,6 +144,31 @@ export const userHasModuleAccess = (user, moduleKey) =>
 export const getFirstEnabledModuleForUser = (user) =>
   getEnabledModulesForUser(user)[0] || null;
 
+const GLOBAL_ROLES = ["admin", "super-admin"];
+
+/**
+ * The role this user holds inside a given module.
+ *
+ * A person can sit at different levels in each module — a manager in LEAP and
+ * an agent in QUEST — so never read `user.role` directly once a module is
+ * selected. `admin`/`super-admin` are company-wide and never vary. Falls back
+ * to `user.role` for accounts enrolled before per-module roles existed.
+ */
+export const getRoleForModule = (user, moduleKey) => {
+  const baseRole = String(user?.role || "").trim().toLowerCase();
+
+  if (GLOBAL_ROLES.includes(baseRole)) {
+    return baseRole;
+  }
+
+  const normalizedKey = String(moduleKey || "").trim().toUpperCase();
+  const moduleRole = String(user?.moduleRoles?.[normalizedKey] || "")
+    .trim()
+    .toLowerCase();
+
+  return moduleRole || baseRole;
+};
+
 export const getInitialRouteForRole = (role) => {
   if (role === "manager") {
     return "Manager";

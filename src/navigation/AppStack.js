@@ -52,6 +52,7 @@ import ManagerLiveMap from "../screens/ManagerLiveMap";
 import ModulePicker from "../screens/ModulePicker";
 import {
   getModuleConfig,
+  getRoleForModule,
   MODULE_KEYS,
   userHasModuleAccess,
 } from "../constants/moduleConfig";
@@ -189,7 +190,7 @@ function CustomDrawerContent({ state, navigation, handleLogout, routes }) {
               {user?.fullName || "User"}
             </Text>
             <Text style={drawerStyles.userRole}>
-              {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Member"}
+              {(() => { const r = getRoleForModule(user, selectedModule); return r ? r.charAt(0).toUpperCase() + r.slice(1) : "Member"; })()}
             </Text>
           </View>
         </View>
